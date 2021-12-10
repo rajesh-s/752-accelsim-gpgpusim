@@ -192,8 +192,8 @@ int main(int argc, char const *argv[])
     /* Fixed seed for illustration */
     srand(3333);
     printf("please type in m n and k\n");
-    scanf("%d %d %d", &m, &n, &k);
-
+//scanf("%d %d %d", &m, &n, &k);
+m = 2; n = 2; k=2;
     // allocate memory in host RAM, h_cc is used to store CPU result
     int *h_a, *h_b, *h_c, *h_cc;
     cudaMallocHost((void **) &h_a, sizeof(int)*m*n);

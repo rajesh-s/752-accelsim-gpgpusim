@@ -385,6 +385,8 @@ enum cache_request_status tag_array::access(new_addr_type addr, unsigned time,
 }
 
 void tag_array::fill(new_addr_type addr, unsigned time, mem_fetch *mf) {
+  // int temp = mf->get_pc(); uint8_t temp2 = (uint8_t) mf->get_pc();
+  // fprintf(stdout,"Normal PC: %d Hashed PC: %d \n",temp,temp2); Rajesh CS752 Print statement confirmed that conversion from 32bit to 8bit is working as expected
   fill(addr, time, mf->get_access_sector_mask(), (uint8_t) mf->get_pc()); // Rajesh CS752
 }
 
@@ -395,6 +397,7 @@ void tag_array::fill(new_addr_type addr, unsigned time,
   enum cache_request_status status = probe(addr, idx, mask);
   // assert(status==MISS||status==SECTOR_MISS); // MSHR should have prevented
   // redundant memory request
+  
   if (status == MISS)
     m_lines[idx]->allocate(m_config.tag(addr), m_config.block_addr(addr), time,
                            mask, hashed_pc); // rajesh cs752
