@@ -1,0 +1,6 @@
+source setup_environment release
+make -j16
+cd test
+nvcc mmul.cu -lcudart -o mmul -std=c++11
+ldd mmul
+./mmul

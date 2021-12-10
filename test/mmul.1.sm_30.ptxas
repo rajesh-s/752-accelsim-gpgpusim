@@ -1,0 +1,13 @@
+ptxas info    : 0 bytes gmem
+ptxas info    : Compiling entry function '_Z20gpu_matrix_transposePiS_jj' for 'sm_30'
+ptxas info    : Function properties for _Z20gpu_matrix_transposePiS_jj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 7 registers, 344 bytes cmem[0]
+ptxas info    : Compiling entry function '_Z22gpu_square_matrix_multPiS_S_i' for 'sm_30'
+ptxas info    : Function properties for _Z22gpu_square_matrix_multPiS_S_i
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 24 registers, 2048 bytes smem, 348 bytes cmem[0]
+ptxas info    : Compiling entry function '_Z15gpu_matrix_multPiS_S_iii' for 'sm_30'
+ptxas info    : Function properties for _Z15gpu_matrix_multPiS_S_iii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 32 registers, 356 bytes cmem[0]
