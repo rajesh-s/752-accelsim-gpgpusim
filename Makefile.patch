@@ -1,0 +1,145 @@
+diff --git a/Makefile b/Makefile
+index d248211..fc6ef47 100644
+--- a/Makefile
++++ b/Makefile
+@@ -143,13 +143,13 @@ no_opencl_support:
+ 	@echo "Warning: gpgpu-sim is building without opencl support. Make sure NVOPENCL_LIBDIR and NVOPENCL_INCDIR are set"
+ 
+ $(SIM_LIB_DIR)/libcudart.so: makedirs $(LIBS) cudalib
+-	g++ -shared -Wl,-soname,libcudart.so -Wl,--version-script=linux-so-version.txt\
++	g++ -std=c++11 -shared -Wl,-soname,libcudart.so -Wl,--version-script=linux-so-version.txt\
+ 			$(SIM_OBJ_FILES_DIR)/libcuda/*.o \
+ 			$(SIM_OBJ_FILES_DIR)/cuda-sim/*.o \
+ 			$(SIM_OBJ_FILES_DIR)/cuda-sim/decuda_pred_table/*.o \
+ 			$(SIM_OBJ_FILES_DIR)/gpgpu-sim/*.o \
+ 			$(SIM_OBJ_FILES_DIR)/$(INTERSIM)/*.o \
+-			$(SIM_OBJ_FILES_DIR)/*.o -lm -lz -lGL -pthread \
++			$(SIM_OBJ_FILES_DIR)/*.o -lm -lz -pthread \
+ 			$(MCPAT) \
+ 			-o $(SIM_LIB_DIR)/libcudart.so
+ 	if [ ! -f $(SIM_LIB_DIR)/libcudart.so.2 ]; then ln -s libcudart.so $(SIM_LIB_DIR)/libcudart.so.2; fi
+@@ -170,7 +170,7 @@ $(SIM_LIB_DIR)/libcudart.so: makedirs $(LIBS) cudalib
+ 	if [ ! -f $(SIM_LIB_DIR)/libcudart.so.11.0 ]; then ln -s libcudart.so $(SIM_LIB_DIR)/libcudart.so.11.0; fi
+ 
+ $(SIM_LIB_DIR)/libcudart.dylib: makedirs $(LIBS) cudalib
+-	g++ -dynamiclib -Wl,-headerpad_max_install_names,-undefined,dynamic_lookup,-compatibility_version,1.1,-current_version,1.1\
++	g++ -std=c++11 -dynamiclib -Wl,-headerpad_max_install_names,-undefined,dynamic_lookup,-compatibility_version,1.1,-current_version,1.1\
+ 			$(SIM_OBJ_FILES_DIR)/libcuda/*.o \
+ 			$(SIM_OBJ_FILES_DIR)/cuda-sim/*.o \
+ 			$(SIM_OBJ_FILES_DIR)/cuda-sim/decuda_pred_table/*.o \
+@@ -181,7 +181,7 @@ $(SIM_LIB_DIR)/libcudart.dylib: makedirs $(LIBS) cudalib
+ 			-o $(SIM_LIB_DIR)/libcudart.dylib
+ 
+ $(SIM_LIB_DIR)/libOpenCL.so: makedirs $(LIBS) opencllib
+-	g++ -shared -Wl,-soname,libOpenCL_$(GPGPUSIM_BUILD).so \
++	g++ -std=c++11 -shared -Wl,-soname,libOpenCL_$(GPGPUSIM_BUILD).so \
+ 			$(SIM_OBJ_FILES_DIR)/libopencl/*.o \
+ 			$(SIM_OBJ_FILES_DIR)/cuda-sim/*.o \
+ 			$(SIM_OBJ_FILES_DIR)/cuda-sim/decuda_pred_table/*.o \
+diff --git a/libcuda/Makefile b/libcuda/Makefile
+index c8ff2e3..8477bcb 100644
+--- a/libcuda/Makefile
++++ b/libcuda/Makefile
+@@ -76,11 +76,11 @@ CC = gcc $(SNOW)
+ CREATELIBRARY    =  1
+ DEBUG ?= 0
+ ifeq ($(DEBUG),1)
+-	CXXFLAGS +=  -Wall -Wno-unused-function -Wno-sign-compare -g -fPIC $(GL)
+-	CCFLAGS += -Wall -Wno-unused-function -Wno-sign-compare -ggdb -fPIC
++	CXXFLAGS += -std=c++11 -Wall -Wno-unused-function -Wno-sign-compare -g -fPIC $(GL)
++	CCFLAGS += -std=c++11 -Wall -Wno-unused-function -Wno-sign-compare -ggdb -fPIC
+ else
+-	CXXFLAGS += -O3 -g -Wall -Wno-unused-function -Wno-sign-compare -fPIC $(GL)
+-	CCFLAGS += -Wall -Wno-unused-function -Wno-sign-compare -fPIC
++	CXXFLAGS += -std=c++11 -O3 -g -Wall -Wno-unused-function -Wno-sign-compare -fPIC $(GL)
++	CCFLAGS += -std=c++11 -Wall -Wno-unused-function -Wno-sign-compare -fPIC
+ endif
+ 
+ PROG     =cuda
+@@ -121,7 +121,7 @@ $(OUTPUT_DIR)/cuobjdump_parser.c: cuobjdump.y
+ 
+ $(OUTPUT_DIR)/cuobjdump_lexer.c: cuobjdump.l $(OUTPUT_DIR)/cuobjdump_parser.h
+ 	$(LEX) $(LEXFLAGS) -P cuobjdump_ -o$@ $<
+-	
++
+ # The next rule means just get parser.c and you will get parser.h with it
+ # in other words, get parser.c and do nothing to get parser.h
+ $(OUTPUT_DIR)/%_parser.h: $(OUTPUT_DIR)/%_parser.c
+diff --git a/src/Makefile b/src/Makefile
+index 3ad511e..251fcd2 100644
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -34,7 +34,7 @@ TRACE?=1
+ 
+ include ../version_detection.mk
+ 
+-CXXFLAGS = -Wall -DDEBUG
++CXXFLAGS = -std=c++11 -Wall -DDEBUG
+ CXXFLAGS += -DCUDART_VERSION=$(CUDART_VERSION)
+ 
+ ifeq ($(GNUC_CPP0X), 1)
+@@ -67,7 +67,7 @@ $(OUTPUT_DIR)/libgpgpusim.a:	$(OBJS) gpu_uarch_simlib
+ 
+ gpu_uarch_simlib:
+ 	make   -C ./gpgpu-sim
+-	
++
+ $(OUTPUT_DIR)/Makefile.makedepend: depend
+ 
+ depend:
+diff --git a/src/cuda-sim/Makefile b/src/cuda-sim/Makefile
+index 85d1c8c..9139df4 100644
+--- a/src/cuda-sim/Makefile
++++ b/src/cuda-sim/Makefile
+@@ -42,9 +42,9 @@ include ../../version_detection.mk
+ 
+ OUTPUT_DIR=$(SIM_OBJ_FILES_DIR)/cuda-sim
+ 
+-OPT	:=  -O3 -g3 -Wall -Wno-unused-function -Wno-sign-compare
++OPT	:=  -std=c++11 -O3 -g3 -Wall -Wno-unused-function -Wno-sign-compare
+ ifeq ($(DEBUG),1)
+-	OPT := -g3 -Wall  -Wno-unused-function -Wno-sign-compare
++	OPT := -std=c++11 -g3 -Wall  -Wno-unused-function -Wno-sign-compare
+ endif
+ OPT += -I$(CUDA_INSTALL_PATH)/include  -I$(OUTPUT_DIR)/ -I. -I$(SIM_OBJ_FILES_DIR)
+ OPT += -fPIC 
+diff --git a/src/cuda-sim/memory.cc b/src/cuda-sim/memory.cc
+index 1323837..53f596f 100644
+--- a/src/cuda-sim/memory.cc
++++ b/src/cuda-sim/memory.cc
+@@ -106,13 +106,15 @@ template <unsigned BSIZE>
+ void memory_space_impl<BSIZE>::read_single_block(mem_addr_t blk_idx,
+                                                  mem_addr_t addr, size_t length,
+                                                  void *data) const {
+-  if ((addr + length) > (blk_idx + 1) * BSIZE) {
++  mem_addr_t newAddr = (addr + length);
++  mem_addr_t bound = (blk_idx + 1) * BSIZE;
++  if (newAddr > bound) {
+     printf(
+         "GPGPU-Sim PTX: ERROR * access to memory \'%s\' is unaligned : "
+         "addr=0x%x, length=%zu\n",
+         m_name.c_str(), addr, length);
+     printf(
+-        "GPGPU-Sim PTX: (addr+length)=0x%lx > 0x%x=(index+1)*BSIZE, "
++        "GPGPU-Sim PTX: (addr+length)=0x%lx > 0x%lx=(index+1)*BSIZE, "
+         "index=0x%x, BSIZE=0x%x\n",
+         (addr + length), (blk_idx + 1) * BSIZE, blk_idx, BSIZE);
+     throw 1;
+diff --git a/src/gpgpu-sim/Makefile b/src/gpgpu-sim/Makefile
+index 4994577..5455c66 100644
+--- a/src/gpgpu-sim/Makefile
++++ b/src/gpgpu-sim/Makefile
+@@ -32,9 +32,9 @@ DEBUG?=0
+ TRACE?=0
+ 
+ ifeq ($(DEBUG),1)
+-	CXXFLAGS = -Wall -DDEBUG
++	CXXFLAGS = -std=c++11 -Wall -DDEBUG
+ else
+-	CXXFLAGS = -Wall
++	CXXFLAGS = -std=c++11 -Wall
+ endif
+ 
+ ifeq ($(TRACE),1)
+
+

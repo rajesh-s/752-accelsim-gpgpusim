@@ -32,9 +32,9 @@ DEBUG?=0
 TRACE?=0
 
 ifeq ($(DEBUG),1)
-	CXXFLAGS = -Wall -DDEBUG
+	CXXFLAGS = -std=c++11 -Wall -DDEBUG
 else
-	CXXFLAGS = -Wall
+	CXXFLAGS = -std=c++11 -Wall
 endif
 
 ifeq ($(TRACE),1)

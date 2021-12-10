@@ -34,7 +34,7 @@ TRACE?=1
 
 include ../version_detection.mk
 
-CXXFLAGS = -Wall -DDEBUG
+CXXFLAGS = -std=c++11 -Wall -DDEBUG
 CXXFLAGS += -DCUDART_VERSION=$(CUDART_VERSION)
 
 ifeq ($(GNUC_CPP0X), 1)
@@ -67,7 +67,7 @@ $(OUTPUT_DIR)/libgpgpusim.a:	$(OBJS) gpu_uarch_simlib
 
 gpu_uarch_simlib:
 	make   -C ./gpgpu-sim
-	
+
 $(OUTPUT_DIR)/Makefile.makedepend: depend
 
 depend:

@@ -106,13 +106,15 @@ template <unsigned BSIZE>
 void memory_space_impl<BSIZE>::read_single_block(mem_addr_t blk_idx,
                                                  mem_addr_t addr, size_t length,
                                                  void *data) const {
-  if ((addr + length) > (blk_idx + 1) * BSIZE) {
+  mem_addr_t newAddr = (addr + length);
+  mem_addr_t bound = (blk_idx + 1) * BSIZE;
+  if (newAddr > bound) {
     printf(
         "GPGPU-Sim PTX: ERROR * access to memory \'%s\' is unaligned : "
         "addr=0x%x, length=%zu\n",
         m_name.c_str(), addr, length);
     printf(
-        "GPGPU-Sim PTX: (addr+length)=0x%lx > 0x%x=(index+1)*BSIZE, "
+        "GPGPU-Sim PTX: (addr+length)=0x%lx > 0x%lx=(index+1)*BSIZE, "
         "index=0x%x, BSIZE=0x%x\n",
         (addr + length), (blk_idx + 1) * BSIZE, blk_idx, BSIZE);
     throw 1;

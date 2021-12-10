@@ -357,8 +357,8 @@ enum cache_request_status tag_array::access(new_addr_type addr, unsigned time,
           evicted.set_info(m_lines[idx]->m_block_addr,
                            m_lines[idx]->get_modified_size());
         }
-        m_lines[idx]->allocate(m_config.tag(addr), m_config.block_addr(addr),
-                               time, mf->get_access_sector_mask());
+        m_lines[idx]->allocate(m_config.tag(addr), m_config.block_addr(addr), 
+                               time, mf->get_access_sector_mask(), (uint8_t) mf->get_pc());
       }
       break;
     case SECTOR_MISS:
@@ -385,11 +385,11 @@ enum cache_request_status tag_array::access(new_addr_type addr, unsigned time,
 }
 
 void tag_array::fill(new_addr_type addr, unsigned time, mem_fetch *mf) {
-  fill(addr, time, mf->get_access_sector_mask());
+  fill(addr, time, mf->get_access_sector_mask(), (uint8_t) mf->get_pc()); // Rajesh CS752
 }
 
 void tag_array::fill(new_addr_type addr, unsigned time,
-                     mem_access_sector_mask_t mask) {
+                     mem_access_sector_mask_t mask, uint8_t hashed_pc) {
   // assert( m_config.m_alloc_policy == ON_FILL );
   unsigned idx;
   enum cache_request_status status = probe(addr, idx, mask);
@@ -397,7 +397,7 @@ void tag_array::fill(new_addr_type addr, unsigned time,
   // redundant memory request
   if (status == MISS)
     m_lines[idx]->allocate(m_config.tag(addr), m_config.block_addr(addr), time,
-                           mask);
+                           mask, hashed_pc); // rajesh cs752
   else if (status == SECTOR_MISS) {
     assert(m_config.m_cache_type == SECTOR);
     ((sector_cache_block *)m_lines[idx])->allocate_sector(time, mask);
@@ -408,7 +408,7 @@ void tag_array::fill(new_addr_type addr, unsigned time,
 
 void tag_array::fill(unsigned index, unsigned time, mem_fetch *mf) {
   assert(m_config.m_alloc_policy == ON_MISS);
-  m_lines[index]->fill(time, mf->get_access_sector_mask());
+  m_lines[index]->fill(time, mf->get_access_sector_mask()); // rajesh cs752
 }
 
 // TODO: we need write back the flushed data to the upper level

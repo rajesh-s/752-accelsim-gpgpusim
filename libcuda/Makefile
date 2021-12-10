@@ -76,11 +76,11 @@ CC = gcc $(SNOW)
 CREATELIBRARY    =  1
 DEBUG ?= 0
 ifeq ($(DEBUG),1)
-	CXXFLAGS +=  -Wall -Wno-unused-function -Wno-sign-compare -g -fPIC $(GL)
-	CCFLAGS += -Wall -Wno-unused-function -Wno-sign-compare -ggdb -fPIC
+	CXXFLAGS += -std=c++11 -Wall -Wno-unused-function -Wno-sign-compare -g -fPIC $(GL)
+	CCFLAGS += -std=c++11 -Wall -Wno-unused-function -Wno-sign-compare -ggdb -fPIC
 else
-	CXXFLAGS += -O3 -g -Wall -Wno-unused-function -Wno-sign-compare -fPIC $(GL)
-	CCFLAGS += -Wall -Wno-unused-function -Wno-sign-compare -fPIC
+	CXXFLAGS += -std=c++11 -O3 -g -Wall -Wno-unused-function -Wno-sign-compare -fPIC $(GL)
+	CCFLAGS += -std=c++11 -Wall -Wno-unused-function -Wno-sign-compare -fPIC
 endif
 
 PROG     =cuda
@@ -121,7 +121,7 @@ $(OUTPUT_DIR)/cuobjdump_parser.c: cuobjdump.y
 
 $(OUTPUT_DIR)/cuobjdump_lexer.c: cuobjdump.l $(OUTPUT_DIR)/cuobjdump_parser.h
 	$(LEX) $(LEXFLAGS) -P cuobjdump_ -o$@ $<
-	
+
 # The next rule means just get parser.c and you will get parser.h with it
 # in other words, get parser.c and do nothing to get parser.h
 $(OUTPUT_DIR)/%_parser.h: $(OUTPUT_DIR)/%_parser.c

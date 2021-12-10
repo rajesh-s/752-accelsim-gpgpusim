@@ -105,11 +105,12 @@ struct cache_block_t {
   cache_block_t() {
     m_tag = 0;
     m_block_addr = 0;
+    m_hashed_pc = 0; // rajesh cs752
   }
 
   virtual void allocate(new_addr_type tag, new_addr_type block_addr,
                         unsigned time,
-                        mem_access_sector_mask_t sector_mask) = 0;
+                        mem_access_sector_mask_t sector_mask, uint8_t hashed_pc) = 0; // rajesh cs752
   virtual void fill(unsigned time, mem_access_sector_mask_t sector_mask) = 0;
 
   virtual bool is_invalid_line() = 0;
@@ -139,6 +140,7 @@ struct cache_block_t {
 
   new_addr_type m_tag;
   new_addr_type m_block_addr;
+  uint8_t m_hashed_pc; // rajesh cs752
 };
 
 struct line_cache_block : public cache_block_t {
@@ -152,7 +154,7 @@ struct line_cache_block : public cache_block_t {
     m_readable = true;
   }
   void allocate(new_addr_type tag, new_addr_type block_addr, unsigned time,
-                mem_access_sector_mask_t sector_mask) {
+                mem_access_sector_mask_t sector_mask, uint8_t hashed_pc) {
     m_tag = tag;
     m_block_addr = block_addr;
     m_alloc_time = time;
@@ -161,6 +163,7 @@ struct line_cache_block : public cache_block_t {
     m_status = RESERVED;
     m_ignore_on_fill_status = false;
     m_set_modified_on_fill = false;
+    m_hashed_pc = hashed_pc; // rajesh cs752
   }
   void fill(unsigned time, mem_access_sector_mask_t sector_mask) {
     // if(!m_ignore_on_fill_status)
@@ -242,17 +245,18 @@ struct sector_cache_block : public cache_block_t {
   }
 
   virtual void allocate(new_addr_type tag, new_addr_type block_addr,
-                        unsigned time, mem_access_sector_mask_t sector_mask) {
-    allocate_line(tag, block_addr, time, sector_mask);
+                        unsigned time, mem_access_sector_mask_t sector_mask, uint8_t hashed_pc) {
+    allocate_line(tag, block_addr, time, sector_mask, hashed_pc);
   }
 
   void allocate_line(new_addr_type tag, new_addr_type block_addr, unsigned time,
-                     mem_access_sector_mask_t sector_mask) {
+                     mem_access_sector_mask_t sector_mask, uint8_t hashed_pc) {
     // allocate a new line
     // assert(m_block_addr != 0 && m_block_addr != block_addr);
     init();
     m_tag = tag;
     m_block_addr = block_addr;
+    m_hashed_pc = hashed_pc;
 
     unsigned sidx = get_sector_index(sector_mask);
 
@@ -826,14 +830,14 @@ class tag_array {
                                   bool probe_mode = false,
                                   mem_fetch *mf = NULL) const;
   enum cache_request_status access(new_addr_type addr, unsigned time,
-                                   unsigned &idx, mem_fetch *mf);
+                                   unsigned &idx, mem_fetch *mf); // rajesh cs752 No need to have hashed_pc since it is only used in allocate in gpu-cache.cc
   enum cache_request_status access(new_addr_type addr, unsigned time,
                                    unsigned &idx, bool &wb,
                                    evicted_block_info &evicted, mem_fetch *mf);
 
   void fill(new_addr_type addr, unsigned time, mem_fetch *mf);
   void fill(unsigned idx, unsigned time, mem_fetch *mf);
-  void fill(new_addr_type addr, unsigned time, mem_access_sector_mask_t mask);
+  void fill(new_addr_type addr, unsigned time, mem_access_sector_mask_t mask, uint8_t hashed_pc);
 
   unsigned size() const { return m_config.get_num_lines(); }
   cache_block_t *get_block(unsigned idx) { return m_lines[idx]; }
@@ -1216,7 +1220,7 @@ class baseline_cache : public cache_t {
   // something is read or written without doing anything else.
   void force_tag_access(new_addr_type addr, unsigned time,
                         mem_access_sector_mask_t mask) {
-    m_tag_array->fill(addr, time, mask);
+    m_tag_array->fill(addr, time, mask, 0); // rajesh cs752. TODO: FIX NEEEDD
   }
 
  protected:
