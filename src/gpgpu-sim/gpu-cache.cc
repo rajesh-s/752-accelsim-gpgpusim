@@ -386,7 +386,7 @@ enum cache_request_status tag_array::access(new_addr_type addr, unsigned time,
                            m_lines[idx]->get_modified_size());
         }
         m_lines[idx]->allocate(m_config.tag(addr), m_config.block_addr(addr), 
-                               time, mf->get_access_sector_mask(), (uint8_t) mf->get_pc());
+                               time, mf->get_access_sector_mask());
       }
       break;
     case SECTOR_MISS:
@@ -413,23 +413,27 @@ enum cache_request_status tag_array::access(new_addr_type addr, unsigned time,
 }
 
 void tag_array::fill(new_addr_type addr, unsigned time, mem_fetch *mf) {
+  fill(addr, time, mf->get_access_sector_mask());
+}
+
+void tag_array::fill(new_addr_type addr, unsigned time, mem_fetch *mf, uint8_t *l1_prediction_table) {
   // int temp = mf->get_pc(); uint8_t temp2 = (uint8_t) mf->get_pc();
   // fprintf(stdout,"Normal PC: %d Hashed PC: %d \n",temp,temp2); Rajesh CS752 Print statement confirmed that conversion from 32bit to 8bit is working as expected
-  fill(addr, time, mf->get_access_sector_mask(), (uint8_t) mf->get_pc()); // Rajesh CS752
+  fill(addr, time, mf->get_access_sector_mask(), (uint8_t) mf->get_pc(), l1_prediction_table); // Rajesh CS752
 }
 
 void tag_array::fill(new_addr_type addr, unsigned time,
-                     mem_access_sector_mask_t mask, uint8_t hashed_pc) {
+                     mem_access_sector_mask_t mask) {
   // assert( m_config.m_alloc_policy == ON_FILL );
   unsigned idx;
   enum cache_request_status status = probe(addr, idx, mask);
   // assert(status==MISS||status==SECTOR_MISS); // MSHR should have prevented
   // redundant memory request
   
-  if (status == MISS)
+  if (status == MISS){
     m_lines[idx]->allocate(m_config.tag(addr), m_config.block_addr(addr), time,
-                           mask, hashed_pc); // rajesh cs752
-  else if (status == SECTOR_MISS) {
+                           mask);
+  } else if (status == SECTOR_MISS) {
     assert(m_config.m_cache_type == SECTOR);
     ((sector_cache_block *)m_lines[idx])->allocate_sector(time, mask);
   }
@@ -440,6 +444,27 @@ void tag_array::fill(new_addr_type addr, unsigned time,
 void tag_array::fill(unsigned index, unsigned time, mem_fetch *mf) {
   assert(m_config.m_alloc_policy == ON_MISS);
   m_lines[index]->fill(time, mf->get_access_sector_mask()); // rajesh cs752
+}
+
+void tag_array::fill(new_addr_type addr, unsigned time,
+                     mem_access_sector_mask_t mask, uint8_t hashed_pc, uint8_t *l1d_prediction_table) {
+  // assert( m_config.m_alloc_policy == ON_FILL );
+  unsigned idx; // Rajesh CS752 index where fill should happen is obtained on probe
+  enum cache_request_status status = probe(addr, idx, mask);
+  // assert(status==MISS||status==SECTOR_MISS); // MSHR should have prevented
+  // redundant memory request
+  
+  if (status == MISS){
+    if(l1d_prediction_table[m_lines[idx]->m_hashed_pc] < 16) // Saturating counter stays at 15
+      l1d_prediction_table[m_lines[idx]->m_hashed_pc]++ ;// Rajesh CS752 Victim Hashed PC
+    m_lines[idx]->allocate(m_config.tag(addr), m_config.block_addr(addr), time,
+                           mask, hashed_pc); // rajesh cs752
+  } else if (status == SECTOR_MISS) {
+    assert(m_config.m_cache_type == SECTOR);
+    ((sector_cache_block *)m_lines[idx])->allocate_sector(time, mask);
+  }
+
+  m_lines[idx]->fill(time, mask);
 }
 
 // TODO: we need write back the flushed data to the upper level
@@ -1059,6 +1084,52 @@ void baseline_cache::cycle() {
   bool fill_port_busy = !m_bandwidth_management.fill_port_free();
   m_stats.sample_cache_port_utility(data_port_busy, fill_port_busy);
   m_bandwidth_management.replenish_port_bandwidth();
+}
+
+/// Interface for response from lower memory level (model bandwidth restictions
+/// in caller)
+void baseline_cache::fill(mem_fetch *mf, unsigned time, uint8_t *l1d_prediction_table) {
+  if (m_config.m_mshr_type == SECTOR_ASSOC) {
+    assert(mf->get_original_mf());
+    extra_mf_fields_lookup::iterator e =
+        m_extra_mf_fields.find(mf->get_original_mf());
+    assert(e != m_extra_mf_fields.end());
+    e->second.pending_read--;
+
+    if (e->second.pending_read > 0) {
+      // wait for the other requests to come back
+      delete mf;
+      return;
+    } else {
+      mem_fetch *temp = mf;
+      mf = mf->get_original_mf();
+      delete temp;
+    }
+  }
+
+  extra_mf_fields_lookup::iterator e = m_extra_mf_fields.find(mf);
+  assert(e != m_extra_mf_fields.end());
+  assert(e->second.m_valid);
+  mf->set_data_size(e->second.m_data_size);
+  mf->set_addr(e->second.m_addr);
+  if (m_config.m_alloc_policy == ON_MISS)
+    m_tag_array->fill(e->second.m_cache_index, time, mf);
+  else if (m_config.m_alloc_policy == ON_FILL) {
+    m_tag_array->fill(e->second.m_block_addr, time, mf, l1d_prediction_table);
+    if (m_config.is_streaming()) m_tag_array->remove_pending_line(mf);
+  } else
+    abort();
+  bool has_atomic = false;
+  m_mshrs.mark_ready(e->second.m_block_addr, has_atomic);
+  if (has_atomic) {
+    assert(m_config.m_alloc_policy == ON_MISS);
+    cache_block_t *block = m_tag_array->get_block(e->second.m_cache_index);
+    block->set_status(MODIFIED,
+                      mf->get_access_sector_mask());  // mark line as dirty for
+                                                      // atomic operation
+  }
+  m_extra_mf_fields.erase(mf);
+  m_bandwidth_management.use_fill_port(mf);
 }
 
 /// Interface for response from lower memory level (model bandwidth restictions

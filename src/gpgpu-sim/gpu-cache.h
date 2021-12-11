@@ -110,6 +110,9 @@ struct cache_block_t {
 
   virtual void allocate(new_addr_type tag, new_addr_type block_addr,
                         unsigned time,
+                        mem_access_sector_mask_t sector_mask) = 0; // rajesh cs752
+  virtual void allocate(new_addr_type tag, new_addr_type block_addr,
+                        unsigned time,
                         mem_access_sector_mask_t sector_mask, uint8_t hashed_pc) = 0; // rajesh cs752
   virtual void fill(unsigned time, mem_access_sector_mask_t sector_mask) = 0;
 
@@ -154,6 +157,18 @@ struct line_cache_block : public cache_block_t {
     m_readable = true;
   }
   void allocate(new_addr_type tag, new_addr_type block_addr, unsigned time,
+                mem_access_sector_mask_t sector_mask) {
+    m_tag = tag;
+    m_block_addr = block_addr;
+    m_alloc_time = time;
+    m_last_access_time = time;
+    m_fill_time = 0;
+    m_status = RESERVED;
+    m_ignore_on_fill_status = false;
+    m_set_modified_on_fill = false;
+  }
+
+  void allocate(new_addr_type tag, new_addr_type block_addr, unsigned time,
                 mem_access_sector_mask_t sector_mask, uint8_t hashed_pc) {
     m_tag = tag;
     m_block_addr = block_addr;
@@ -165,6 +180,7 @@ struct line_cache_block : public cache_block_t {
     m_set_modified_on_fill = false;
     m_hashed_pc = hashed_pc; // rajesh cs752
   }
+  
   void fill(unsigned time, mem_access_sector_mask_t sector_mask) {
     // if(!m_ignore_on_fill_status)
     //	assert( m_status == RESERVED );
@@ -245,18 +261,22 @@ struct sector_cache_block : public cache_block_t {
   }
 
   virtual void allocate(new_addr_type tag, new_addr_type block_addr,
+                        unsigned time, mem_access_sector_mask_t sector_mask) {
+    allocate_line(tag, block_addr, time, sector_mask);
+  }
+
+  virtual void allocate(new_addr_type tag, new_addr_type block_addr,
                         unsigned time, mem_access_sector_mask_t sector_mask, uint8_t hashed_pc) {
-    allocate_line(tag, block_addr, time, sector_mask, hashed_pc);
+    allocate_line(tag, block_addr, time, sector_mask);
   }
 
   void allocate_line(new_addr_type tag, new_addr_type block_addr, unsigned time,
-                     mem_access_sector_mask_t sector_mask, uint8_t hashed_pc) {
+                     mem_access_sector_mask_t sector_mask) {
     // allocate a new line
     // assert(m_block_addr != 0 && m_block_addr != block_addr);
     init();
     m_tag = tag;
     m_block_addr = block_addr;
-    m_hashed_pc = hashed_pc;
 
     unsigned sidx = get_sector_index(sector_mask);
 
@@ -836,8 +856,10 @@ class tag_array {
                                    evicted_block_info &evicted, mem_fetch *mf);
 
   void fill(new_addr_type addr, unsigned time, mem_fetch *mf);
+  void fill(new_addr_type addr, unsigned time, mem_fetch *mf, uint8_t *l1d_prediction_table);
   void fill(unsigned idx, unsigned time, mem_fetch *mf);
-  void fill(new_addr_type addr, unsigned time, mem_access_sector_mask_t mask, uint8_t hashed_pc);
+  void fill(new_addr_type addr, unsigned time, mem_access_sector_mask_t mask);
+  void fill(new_addr_type addr, unsigned time, mem_access_sector_mask_t mask, uint8_t hashed_pc, uint8_t *l1d_prediction_table);
   uint8_t get_hashed_pc_from_tag(new_addr_type addr,  mem_fetch *mf);
   void set_hashed_pc_from_tag(new_addr_type addr,  mem_fetch *mf, uint8_t hashed_pc);
 
@@ -1176,6 +1198,7 @@ class baseline_cache : public cache_t {
   /// Interface for response from lower memory level (model bandwidth
   /// restictions in caller)
   void fill(mem_fetch *mf, unsigned time);
+  void fill(mem_fetch *mf, unsigned time, uint8_t *l1d_prediction_table); // CS752 Rajesh
   /// Checks if mf is waiting to be filled by lower memory level
   bool waiting_for_fill(mem_fetch *mf);
   /// Are any (accepted) accesses that had to wait for memory now ready? (does
@@ -1222,7 +1245,7 @@ class baseline_cache : public cache_t {
   // something is read or written without doing anything else.
   void force_tag_access(new_addr_type addr, unsigned time,
                         mem_access_sector_mask_t mask) {
-    m_tag_array->fill(addr, time, mask, 0); // rajesh cs752. TODO: FIX NEEEDD
+    m_tag_array->fill(addr, time, mask);
   }
 
  protected:

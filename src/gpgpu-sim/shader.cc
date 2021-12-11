@@ -2619,10 +2619,10 @@ void ldst_unit::cycle() {
             m_response_fifo.pop_front();
             m_next_global = mf;
           }
-        } else {
+        } else { // Rajesh CS752 !bypassed from paper
           if (m_L1D->fill_port_free()) {
             m_L1D->fill(mf, m_core->get_gpu()->gpu_sim_cycle +
-                                m_core->get_gpu()->gpu_tot_sim_cycle); // Rajesh CS752. This will update hashed_pc
+                                m_core->get_gpu()->gpu_tot_sim_cycle, l1d_prediction_table); // Rajesh CS752. This will update hashed_pc
             m_response_fifo.pop_front();
           }
         }
