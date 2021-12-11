@@ -839,6 +839,7 @@ class tag_array {
   void fill(unsigned idx, unsigned time, mem_fetch *mf);
   void fill(new_addr_type addr, unsigned time, mem_access_sector_mask_t mask, uint8_t hashed_pc);
   uint8_t get_hashed_pc_from_tag(new_addr_type addr,  mem_fetch *mf);
+  void set_hashed_pc_from_tag(new_addr_type addr,  mem_fetch *mf, uint8_t hashed_pc);
 
   unsigned size() const { return m_config.get_num_lines(); }
   cache_block_t *get_block(unsigned idx) { return m_lines[idx]; }
@@ -1554,7 +1555,8 @@ class l1_cache : public data_cache {
   virtual enum cache_request_status access(new_addr_type addr, mem_fetch *mf,
                                            unsigned time,
                                            std::list<cache_event> &events);
-  virtual uint8_t get_hashed_pc(new_addr_type addr,  mem_fetch *mf);
+  virtual uint8_t get_hashed_pc(new_addr_type addr,  mem_fetch *mf); // Rajesh CS752
+  virtual void set_hashed_pc(new_addr_type addr,  mem_fetch *mf, uint8_t hashed_pc);
  protected:
   l1_cache(const char *name, cache_config &config, int core_id, int type_id,
            mem_fetch_interface *memport, mem_fetch_allocator *mfcreator,

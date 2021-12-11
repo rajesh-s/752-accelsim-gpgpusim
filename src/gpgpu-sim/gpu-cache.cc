@@ -339,6 +339,20 @@ uint8_t tag_array::get_hashed_pc_from_tag(new_addr_type addr, mem_fetch *mf){
   }
 }
 
+void tag_array::set_hashed_pc_from_tag(new_addr_type addr, mem_fetch *mf, uint8_t hashed_pc){
+  unsigned set_index = m_config.set_index(addr);
+  new_addr_type tag = m_config.tag(addr);
+
+  // check for line in cache and update on HIT access with most recent PC. Rajesh CS752
+  for (unsigned way = 0; way < m_config.m_assoc; way++) {
+    unsigned index = set_index * m_config.m_assoc + way;
+    cache_block_t *line = m_lines[index];
+    if (line->m_tag == tag) {
+      line->m_hashed_pc = hashed_pc;
+    }
+  }
+}
+
 enum cache_request_status tag_array::access(new_addr_type addr, unsigned time,
                                             unsigned &idx, mem_fetch *mf) {
   bool wb = false;
@@ -1693,6 +1707,9 @@ uint8_t l1_cache::get_hashed_pc(new_addr_type addr,  mem_fetch *mf){
   m_tag_array->get_hashed_pc_from_tag(addr,mf);
 }
 
+void l1_cache::set_hashed_pc(new_addr_type addr,  mem_fetch *mf, uint8_t hashed_pc){
+  m_tag_array->set_hashed_pc_from_tag(addr,mf,hashed_pc);
+}
 
 /// This is meant to model the first level data cache in Fermi.
 /// It is write-evict (global) or write-back (local) at the

@@ -1941,6 +1941,8 @@ void ldst_unit::L1_latency_queue_cycle() {
           l1d_prediction_table[previousPC]--;
         }
 
+        m_L1D->set_hashed_pc(mf_next->get_addr(), mf_next, (uint8_t) mf_next->get_pc());
+
         assert(!read_sent);
         l1_latency_queue[j][0] = NULL;
         if (mf_next->get_inst().is_load()) {
@@ -2606,7 +2608,7 @@ void ldst_unit::cycle() {
                    mf->get_access_type() ==
                        GLOBAL_ACC_W) {  // global memory access
           if (m_core->get_config()->gmem_skip_L1D) bypassL1D = true;
-        } else if (l1d_prediction_table[(uint8_t) mf->get_pc()] >= 12) { // % 256 threshold, 
+        } else if (l1d_prediction_table[(uint8_t) mf->get_pc()] >= 12) { // % 256 threshold, CS 752
           bypassL1D = true;
         }
         if (bypassL1D) {
