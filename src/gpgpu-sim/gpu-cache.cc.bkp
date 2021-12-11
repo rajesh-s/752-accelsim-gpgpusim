@@ -325,20 +325,6 @@ enum cache_request_status tag_array::probe(new_addr_type addr, unsigned &idx,
   return MISS;
 }
 
-uint8_t tag_array::get_hashed_pc_from_tag(new_addr_type addr, mem_fetch *mf){
-  unsigned set_index = m_config.set_index(addr);
-  new_addr_type tag = m_config.tag(addr);
-
-  // check for line in cache
-  for (unsigned way = 0; way < m_config.m_assoc; way++) {
-    unsigned index = set_index * m_config.m_assoc + way;
-    cache_block_t *line = m_lines[index];
-    if (line->m_tag == tag) {
-      return line->m_hashed_pc;
-    }
-  }
-}
-
 enum cache_request_status tag_array::access(new_addr_type addr, unsigned time,
                                             unsigned &idx, mem_fetch *mf) {
   bool wb = false;
@@ -361,6 +347,7 @@ enum cache_request_status tag_array::access(new_addr_type addr, unsigned time,
       m_pending_hit++;
     case HIT:
       m_lines[idx]->set_last_access_time(time, mf->get_access_sector_mask());
+      //m_lines[idx]->set_last_access_pc((uint8_t) mf->get_pc()); // Rajesh CS752 Update PC on hits
       break;
     case MISS:
       m_miss++;
@@ -417,15 +404,15 @@ void tag_array::fill(new_addr_type addr, unsigned time,
                            mask, hashed_pc); // rajesh cs752
   else if (status == SECTOR_MISS) {
     assert(m_config.m_cache_type == SECTOR);
-    ((sector_cache_block *)m_lines[idx])->allocate_sector(time, mask);
+    ((sector_cache_block *)m_lines[idx])->allocate_sector(time, mask, hashed_pc);
   }
 
-  m_lines[idx]->fill(time, mask);
+  m_lines[idx]->fill(time, mask, hashed_pc);
 }
 
 void tag_array::fill(unsigned index, unsigned time, mem_fetch *mf) {
   assert(m_config.m_alloc_policy == ON_MISS);
-  m_lines[index]->fill(time, mf->get_access_sector_mask()); // rajesh cs752
+  m_lines[index]->fill(time, mf->get_access_sector_mask(), (uint8_t) mf->get_pc()); // rajesh cs752
 }
 
 // TODO: we need write back the flushed data to the upper level
@@ -1681,18 +1668,13 @@ enum cache_request_status data_cache::access(new_addr_type addr, mem_fetch *mf,
   enum cache_request_status probe_status =
       m_tag_array->probe(block_addr, cache_index, mf, true);
   enum cache_request_status access_status =
-      process_tag_probe(wr, probe_status, addr, cache_index, mf, time, events); // Rajesh CS752 This will update LRU status on reads
+      process_tag_probe(wr, probe_status, addr, cache_index, mf, time, events);
   m_stats.inc_stats(mf->get_access_type(),
                     m_stats.select_stats_status(probe_status, access_status));
   m_stats.inc_stats_pw(mf->get_access_type(), m_stats.select_stats_status(
                                                   probe_status, access_status));
   return access_status;
 }
-
-uint8_t l1_cache::get_hashed_pc(new_addr_type addr,  mem_fetch *mf){
-  m_tag_array->get_hashed_pc_from_tag(addr,mf);
-}
-
 
 /// This is meant to model the first level data cache in Fermi.
 /// It is write-evict (global) or write-back (local) at the

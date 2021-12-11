@@ -1935,6 +1935,12 @@ void ldst_unit::L1_latency_queue_cycle() {
       bool read_sent = was_read_sent(events);
 
       if (status == HIT) {
+        
+        uint8_t previousPC = m_L1D->get_hashed_pc(mf_next->get_addr(), mf_next); // Rajesh CS752. try different hash functions
+        if(l1d_prediction_table[previousPC] > 0 ){ // Saturating counter stays 0 on 0
+          l1d_prediction_table[previousPC]--;
+        }
+
         assert(!read_sent);
         l1_latency_queue[j][0] = NULL;
         if (mf_next->get_inst().is_load()) {
@@ -2338,6 +2344,11 @@ void ldst_unit::init(mem_fetch_interface *icnt,
   m_stats = stats;
   m_sid = sid;
   m_tpc = tpc;
+
+  for (int i=0; i<256; i++){
+    l1d_prediction_table[i] = 0;
+  }
+
 #define STRSIZE 1024
   char L1T_name[STRSIZE];
   char L1C_name[STRSIZE];
@@ -2595,6 +2606,8 @@ void ldst_unit::cycle() {
                    mf->get_access_type() ==
                        GLOBAL_ACC_W) {  // global memory access
           if (m_core->get_config()->gmem_skip_L1D) bypassL1D = true;
+        } else if (l1d_prediction_table[(uint8_t) mf->get_pc()] >= 12) { // % 256 threshold, 
+          bypassL1D = true;
         }
         if (bypassL1D) {
           if (m_next_global == NULL) {
@@ -2607,7 +2620,7 @@ void ldst_unit::cycle() {
         } else {
           if (m_L1D->fill_port_free()) {
             m_L1D->fill(mf, m_core->get_gpu()->gpu_sim_cycle +
-                                m_core->get_gpu()->gpu_tot_sim_cycle);
+                                m_core->get_gpu()->gpu_tot_sim_cycle); // Rajesh CS752. This will update hashed_pc
             m_response_fifo.pop_front();
           }
         }

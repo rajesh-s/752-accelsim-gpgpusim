@@ -1346,6 +1346,7 @@ class ldst_unit : public pipelined_simd_unit {
   tex_cache *m_L1T;        // texture cache
   read_only_cache *m_L1C;  // constant cache
   l1_cache *m_L1D;         // data cache
+  uint8_t l1d_prediction_table[256]; //  L1D Prediction table CS752
   std::map<unsigned /*warp_id*/,
            std::map<unsigned /*regnum*/, unsigned /*count*/>>
       m_pending_writes;

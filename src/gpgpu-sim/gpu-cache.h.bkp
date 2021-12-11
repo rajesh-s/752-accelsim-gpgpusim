@@ -111,7 +111,7 @@ struct cache_block_t {
   virtual void allocate(new_addr_type tag, new_addr_type block_addr,
                         unsigned time,
                         mem_access_sector_mask_t sector_mask, uint8_t hashed_pc) = 0; // rajesh cs752
-  virtual void fill(unsigned time, mem_access_sector_mask_t sector_mask) = 0;
+  virtual void fill(unsigned time, mem_access_sector_mask_t sector_mask, uint8_t hashed_pc) = 0;
 
   virtual bool is_invalid_line() = 0;
   virtual bool is_valid_line() = 0;
@@ -124,6 +124,7 @@ struct cache_block_t {
                           mem_access_sector_mask_t sector_mask) = 0;
 
   virtual unsigned long long get_last_access_time() = 0;
+  virtual uint8_t get_last_access_pc() = 0; // Rajesh CS752
   virtual void set_last_access_time(unsigned long long time,
                                     mem_access_sector_mask_t sector_mask) = 0;
   virtual unsigned long long get_alloc_time() = 0;
@@ -165,13 +166,14 @@ struct line_cache_block : public cache_block_t {
     m_set_modified_on_fill = false;
     m_hashed_pc = hashed_pc; // rajesh cs752
   }
-  void fill(unsigned time, mem_access_sector_mask_t sector_mask) {
+  void fill(unsigned time, mem_access_sector_mask_t sector_mask, uint8_t hashed_pc) {
     // if(!m_ignore_on_fill_status)
     //	assert( m_status == RESERVED );
 
     m_status = m_set_modified_on_fill ? MODIFIED : VALID;
 
     m_fill_time = time;
+    m_hashed_pc = hashed_pc;
   }
   virtual bool is_invalid_line() { return m_status == INVALID; }
   virtual bool is_valid_line() { return m_status == VALID; }
@@ -189,10 +191,16 @@ struct line_cache_block : public cache_block_t {
   virtual unsigned long long get_last_access_time() {
     return m_last_access_time;
   }
+
+  virtual uint8_t get_last_access_pc() {
+    return m_hashed_pc;
+  }
+
   virtual void set_last_access_time(unsigned long long time,
                                     mem_access_sector_mask_t sector_mask) {
     m_last_access_time = time;
   }
+  
   virtual unsigned long long get_alloc_time() { return m_alloc_time; }
   virtual void set_ignore_on_fill(bool m_ignore,
                                   mem_access_sector_mask_t sector_mask) {
@@ -274,7 +282,7 @@ struct sector_cache_block : public cache_block_t {
     m_line_fill_time = 0;
   }
 
-  void allocate_sector(unsigned time, mem_access_sector_mask_t sector_mask) {
+  void allocate_sector(unsigned time, mem_access_sector_mask_t sector_mask, uint8_t hashed_pc) {
     // allocate invalid sector of this allocated valid line
     assert(is_valid_line());
     unsigned sidx = get_sector_index(sector_mask);
@@ -297,9 +305,10 @@ struct sector_cache_block : public cache_block_t {
     // set line stats
     m_line_last_access_time = time;
     m_line_fill_time = 0;
+    m_hashed_pc = hashed_pc;
   }
 
-  virtual void fill(unsigned time, mem_access_sector_mask_t sector_mask) {
+  virtual void fill(unsigned time, mem_access_sector_mask_t sector_mask, uint8_t hashed_pc) {
     unsigned sidx = get_sector_index(sector_mask);
 
     //	if(!m_ignore_on_fill_status[sidx])
@@ -309,6 +318,7 @@ struct sector_cache_block : public cache_block_t {
 
     m_sector_fill_time[sidx] = time;
     m_line_fill_time = time;
+    m_hashed_pc = hashed_pc;
   }
   virtual bool is_invalid_line() {
     // all the sectors should be invalid
@@ -830,7 +840,7 @@ class tag_array {
                                   bool probe_mode = false,
                                   mem_fetch *mf = NULL) const;
   enum cache_request_status access(new_addr_type addr, unsigned time,
-                                   unsigned &idx, mem_fetch *mf);
+                                   unsigned &idx, mem_fetch *mf); // rajesh cs752 No need to have hashed_pc since it is only used in allocate in gpu-cache.cc
   enum cache_request_status access(new_addr_type addr, unsigned time,
                                    unsigned &idx, bool &wb,
                                    evicted_block_info &evicted, mem_fetch *mf);
@@ -838,7 +848,6 @@ class tag_array {
   void fill(new_addr_type addr, unsigned time, mem_fetch *mf);
   void fill(unsigned idx, unsigned time, mem_fetch *mf);
   void fill(new_addr_type addr, unsigned time, mem_access_sector_mask_t mask, uint8_t hashed_pc);
-  uint8_t get_hashed_pc_from_tag(new_addr_type addr,  mem_fetch *mf);
 
   unsigned size() const { return m_config.get_num_lines(); }
   cache_block_t *get_block(unsigned idx) { return m_lines[idx]; }
@@ -1554,7 +1563,7 @@ class l1_cache : public data_cache {
   virtual enum cache_request_status access(new_addr_type addr, mem_fetch *mf,
                                            unsigned time,
                                            std::list<cache_event> &events);
-  virtual uint8_t get_hashed_pc(new_addr_type addr,  mem_fetch *mf);
+
  protected:
   l1_cache(const char *name, cache_config &config, int core_id, int type_id,
            mem_fetch_interface *memport, mem_fetch_allocator *mfcreator,
