@@ -105,16 +105,18 @@ struct cache_block_t {
   cache_block_t() {
     m_tag = 0;
     m_block_addr = 0;
-    m_hashed_pc = 0; // rajesh cs752
+    m_hashed_pc = 0; // Rajesh cs752 hashed PC for L1
+    m_bypassBit = false; // Rajesh cs752 bypassBit for L2
   }
 
   virtual void allocate(new_addr_type tag, new_addr_type block_addr,
                         unsigned time,
-                        mem_access_sector_mask_t sector_mask) = 0; // rajesh cs752
+                        mem_access_sector_mask_t sector_mask) = 0; // Rajesh cs752
   virtual void allocate(new_addr_type tag, new_addr_type block_addr,
                         unsigned time,
-                        mem_access_sector_mask_t sector_mask, uint8_t hashed_pc) = 0; // rajesh cs752
+                        mem_access_sector_mask_t sector_mask, uint8_t hashed_pc) = 0; // Rajesh cs752
   virtual void fill(unsigned time, mem_access_sector_mask_t sector_mask) = 0;
+  virtual void fill(unsigned time, mem_access_sector_mask_t sector_mask, uint8_t hashed_pc) = 0;
 
   virtual bool is_invalid_line() = 0;
   virtual bool is_valid_line() = 0;
@@ -128,6 +130,8 @@ struct cache_block_t {
 
   virtual unsigned long long get_last_access_time() = 0;
   virtual void set_last_access_time(unsigned long long time,
+                                    mem_access_sector_mask_t sector_mask) = 0;
+  virtual void set_bypassBit(bool isBypassed,
                                     mem_access_sector_mask_t sector_mask) = 0;
   virtual unsigned long long get_alloc_time() = 0;
   virtual void set_ignore_on_fill(bool m_ignore,
@@ -144,6 +148,7 @@ struct cache_block_t {
   new_addr_type m_tag;
   new_addr_type m_block_addr;
   uint8_t m_hashed_pc; // rajesh cs752
+  bool m_bypassBit; // rajesh cs752 L2 Bypass Bit
 };
 
 struct line_cache_block : public cache_block_t {
@@ -189,6 +194,17 @@ struct line_cache_block : public cache_block_t {
 
     m_fill_time = time;
   }
+
+  void fill(unsigned time, mem_access_sector_mask_t sector_mask, uint8_t hashed_pc) {
+    // if(!m_ignore_on_fill_status)
+    //	assert( m_status == RESERVED );
+
+    m_status = m_set_modified_on_fill ? MODIFIED : VALID;
+
+    m_fill_time = time;
+    m_hashed_pc = hashed_pc;
+  }
+
   virtual bool is_invalid_line() { return m_status == INVALID; }
   virtual bool is_valid_line() { return m_status == VALID; }
   virtual bool is_reserved_line() { return m_status == RESERVED; }
@@ -208,6 +224,10 @@ struct line_cache_block : public cache_block_t {
   virtual void set_last_access_time(unsigned long long time,
                                     mem_access_sector_mask_t sector_mask) {
     m_last_access_time = time;
+  }
+  virtual void set_bypassBit(bool isBypassed,
+                            mem_access_sector_mask_t sector_mask)  {
+    m_bypassBit = isBypassed;        
   }
   virtual unsigned long long get_alloc_time() { return m_alloc_time; }
   virtual void set_ignore_on_fill(bool m_ignore,
@@ -258,6 +278,7 @@ struct sector_cache_block : public cache_block_t {
     m_line_alloc_time = 0;
     m_line_last_access_time = 0;
     m_line_fill_time = 0;
+    m_hashed_pc = 0;
   }
 
   virtual void allocate(new_addr_type tag, new_addr_type block_addr,
@@ -267,7 +288,7 @@ struct sector_cache_block : public cache_block_t {
 
   virtual void allocate(new_addr_type tag, new_addr_type block_addr,
                         unsigned time, mem_access_sector_mask_t sector_mask, uint8_t hashed_pc) {
-    allocate_line(tag, block_addr, time, sector_mask);
+    allocate_line(tag, block_addr, time, sector_mask, hashed_pc);
   }
 
   void allocate_line(new_addr_type tag, new_addr_type block_addr, unsigned time,
@@ -294,6 +315,33 @@ struct sector_cache_block : public cache_block_t {
     m_line_fill_time = 0;
   }
 
+  void allocate_line(new_addr_type tag, new_addr_type block_addr, unsigned time,
+                     mem_access_sector_mask_t sector_mask, uint8_t hashed_pc) {
+    // allocate a new line
+    // assert(m_block_addr != 0 && m_block_addr != block_addr);
+    init();
+    m_tag = tag;
+    m_block_addr = block_addr;
+    m_hashed_pc = hashed_pc;
+
+    unsigned sidx = get_sector_index(sector_mask);
+
+    // set sector stats
+    m_sector_alloc_time[sidx] = time;
+    m_last_sector_access_time[sidx] = time;
+    m_sector_fill_time[sidx] = 0;
+    m_status[sidx] = RESERVED;
+    m_ignore_on_fill_status[sidx] = false;
+    m_set_modified_on_fill[sidx] = false;
+
+    // set line stats
+    m_line_alloc_time = time;  // only set this for the first allocated sector
+    m_line_last_access_time = time;
+    m_line_fill_time = 0;
+
+  }
+
+
   void allocate_sector(unsigned time, mem_access_sector_mask_t sector_mask) {
     // allocate invalid sector of this allocated valid line
     assert(is_valid_line());
@@ -319,6 +367,32 @@ struct sector_cache_block : public cache_block_t {
     m_line_fill_time = 0;
   }
 
+  void allocate_sector(unsigned time, mem_access_sector_mask_t sector_mask, uint8_t hashed_pc) {
+    // allocate invalid sector of this allocated valid line
+    assert(is_valid_line());
+    unsigned sidx = get_sector_index(sector_mask);
+
+    // set sector stats
+    m_sector_alloc_time[sidx] = time;
+    m_last_sector_access_time[sidx] = time;
+    m_sector_fill_time[sidx] = 0;
+    if (m_status[sidx] == MODIFIED)  // this should be the case only for
+                                     // fetch-on-write policy //TO DO
+      m_set_modified_on_fill[sidx] = true;
+    else
+      m_set_modified_on_fill[sidx] = false;
+
+    m_status[sidx] = RESERVED;
+    m_ignore_on_fill_status[sidx] = false;
+    // m_set_modified_on_fill[sidx] = false;
+    m_readable[sidx] = true;
+
+    // set line stats
+    m_line_last_access_time = time;
+    m_line_fill_time = 0;
+    m_hashed_pc = hashed_pc;
+  }
+
   virtual void fill(unsigned time, mem_access_sector_mask_t sector_mask) {
     unsigned sidx = get_sector_index(sector_mask);
 
@@ -330,6 +404,21 @@ struct sector_cache_block : public cache_block_t {
     m_sector_fill_time[sidx] = time;
     m_line_fill_time = time;
   }
+
+
+    virtual void fill(unsigned time, mem_access_sector_mask_t sector_mask, uint8_t hashed_pc) {
+    unsigned sidx = get_sector_index(sector_mask);
+
+    //	if(!m_ignore_on_fill_status[sidx])
+    //	         assert( m_status[sidx] == RESERVED );
+
+    m_status[sidx] = m_set_modified_on_fill[sidx] ? MODIFIED : VALID;
+
+    m_sector_fill_time[sidx] = time;
+    m_line_fill_time = time;
+    m_hashed_pc = hashed_pc;
+  }
+
   virtual bool is_invalid_line() {
     // all the sectors should be invalid
     for (unsigned i = 0; i < SECTOR_CHUNCK_SIZE; ++i) {
@@ -376,6 +465,14 @@ struct sector_cache_block : public cache_block_t {
 
     m_last_sector_access_time[sidx] = time;
     m_line_last_access_time = time;
+  }
+
+  virtual void set_bypassBit(bool isBypassed,
+                                    mem_access_sector_mask_t sector_mask) {
+    //unsigned sidx = get_sector_index(sector_mask);
+
+    //m_last_sector_access_time[sidx] = time;
+    m_bypassBit = isBypassed;
   }
 
   virtual unsigned long long get_alloc_time() { return m_line_alloc_time; }
@@ -850,18 +947,24 @@ class tag_array {
                                   bool probe_mode = false,
                                   mem_fetch *mf = NULL) const;
   enum cache_request_status access(new_addr_type addr, unsigned time,
-                                   unsigned &idx, mem_fetch *mf);
+                                   unsigned &idx, mem_fetch *mf);                               
   enum cache_request_status access(new_addr_type addr, unsigned time,
                                    unsigned &idx, bool &wb,
                                    evicted_block_info &evicted, mem_fetch *mf);
-
+  enum cache_request_status access(new_addr_type addr, unsigned time,
+                                   unsigned &idx, mem_fetch *mf, bool isBypassed);                               
+  enum cache_request_status access(new_addr_type addr, unsigned time,
+                                   unsigned &idx, bool &wb,
+                                   evicted_block_info &evicted, mem_fetch *mf, bool isBypassed);
   void fill(new_addr_type addr, unsigned time, mem_fetch *mf);
   void fill(new_addr_type addr, unsigned time, mem_fetch *mf, uint8_t *l1d_prediction_table);
   void fill(unsigned idx, unsigned time, mem_fetch *mf);
+  void fill(unsigned idx, unsigned time, mem_fetch *mf, uint8_t *l1d_prediction_table);
   void fill(new_addr_type addr, unsigned time, mem_access_sector_mask_t mask);
   void fill(new_addr_type addr, unsigned time, mem_access_sector_mask_t mask, uint8_t hashed_pc, uint8_t *l1d_prediction_table);
   uint8_t get_hashed_pc_from_tag(new_addr_type addr,  mem_fetch *mf);
   void set_hashed_pc_from_tag(new_addr_type addr,  mem_fetch *mf, uint8_t hashed_pc);
+  void set_bypass_bit_to_false_after_read_from_tag(new_addr_type addr, mem_fetch *mf, bool bypassBit);
 
   unsigned size() const { return m_config.get_num_lines(); }
   cache_block_t *get_block(unsigned idx) { return m_lines[idx]; }
@@ -1269,7 +1372,7 @@ class baseline_cache : public cache_t {
   enum mem_fetch_status m_miss_queue_status;
   mem_fetch_interface *m_memport;
 
-  struct extra_mf_fields {
+  struct extra_mf_fields { // Rajesh CS752 Added extra mf field of isBypassed that is sent in L2 request
     extra_mf_fields() { m_valid = false; }
     extra_mf_fields(new_addr_type a, new_addr_type ad, unsigned i, unsigned d,
                     const cache_config &m_config) {
@@ -1282,7 +1385,20 @@ class baseline_cache : public cache_t {
                          ? m_config.m_line_sz / SECTOR_SIZE
                          : 0;
     }
+    extra_mf_fields(new_addr_type a, new_addr_type ad, unsigned i, unsigned d,
+                    const cache_config &m_config, bool isBypassed) {
+      m_valid = true;
+      m_block_addr = a;
+      m_addr = ad;
+      m_cache_index = i;
+      m_data_size = d;
+      pending_read = m_config.m_mshr_type == SECTOR_ASSOC
+                         ? m_config.m_line_sz / SECTOR_SIZE
+                         : 0;
+      m_isBypassed = isBypassed;
+    }
     bool m_valid;
+    bool m_isBypassed;
     new_addr_type m_block_addr;
     new_addr_type m_addr;
     unsigned m_cache_index;
@@ -1315,6 +1431,13 @@ class baseline_cache : public cache_t {
                          bool &do_miss, bool &wb, evicted_block_info &evicted,
                          std::list<cache_event> &events, bool read_only,
                          bool wa);
+  /// Read miss handler. Check MSHR hit or MSHR available
+  void send_read_request(new_addr_type addr, new_addr_type block_addr,
+                         unsigned cache_index, mem_fetch *mf, unsigned time,
+                         bool &do_miss, bool &wb, evicted_block_info &evicted,
+                         std::list<cache_event> &events, bool read_only,
+                         bool wa, bool isBypassed);
+
 
   /// Sub-class containing all metadata for port bandwidth management
   class bandwidth_management {
@@ -1394,9 +1517,13 @@ class data_cache : public baseline_cache {
 
     // Set read hit function
     m_rd_hit = &data_cache::rd_hit_base;
+    m_rd_hit_l1d = &data_cache::rd_hit_base_l1d;
+    m_rd_hit_l2 = &data_cache::rd_hit_base_l2;
+
 
     // Set read miss function
     m_rd_miss = &data_cache::rd_miss_base;
+    m_rd_miss_l1d = &data_cache::rd_miss_base_l1d;
 
     // Set write hit function
     switch (m_config.m_write_policy) {
@@ -1444,6 +1571,14 @@ class data_cache : public baseline_cache {
   virtual enum cache_request_status access(new_addr_type addr, mem_fetch *mf,
                                            unsigned time,
                                            std::list<cache_event> &events);
+        
+  virtual enum cache_request_status access(new_addr_type addr, mem_fetch *mf,
+                                           unsigned time,
+                                           std::list<cache_event> &events, uint8_t *l1d_prediction_table);
+
+  virtual enum cache_request_status access(new_addr_type addr, mem_fetch *mf,
+                                           unsigned time,
+                                           std::list<cache_event> &events, bool isBypassed);
 
  protected:
   data_cache(const char *name, cache_config &config, int core_id, int type_id,
@@ -1474,6 +1609,21 @@ class data_cache : public baseline_cache {
                                               unsigned cache_index,
                                               mem_fetch *mf, unsigned time,
                                               std::list<cache_event> &events);
+        
+  enum cache_request_status process_tag_probe(bool wr,
+                                              enum cache_request_status status,
+                                              new_addr_type addr,
+                                              unsigned cache_index,
+                                              mem_fetch *mf, unsigned time,
+                                              std::list<cache_event> &events,
+                                              uint8_t *l1d_prediction_table);
+
+  enum cache_request_status process_tag_probe(bool wr,
+                                              enum cache_request_status status,
+                                              new_addr_type addr,
+                                              unsigned cache_index,
+                                              mem_fetch *mf, unsigned time,
+                                              std::list<cache_event> &events, bool isBypassed);
 
  protected:
   mem_fetch_allocator *m_memfetch_creator;
@@ -1484,7 +1634,7 @@ class data_cache : public baseline_cache {
                           std::list<cache_event> &events);
 
   // Member Function pointers - Set by configuration options
-  // to the functions below each grouping
+  // to the functions below each groupings
   /******* Write-hit configs *******/
   enum cache_request_status (data_cache::*m_wr_hit)(
       new_addr_type addr, unsigned cache_index, mem_fetch *mf, unsigned time,
@@ -1544,21 +1694,49 @@ class data_cache : public baseline_cache {
   enum cache_request_status (data_cache::*m_rd_hit)(
       new_addr_type addr, unsigned cache_index, mem_fetch *mf, unsigned time,
       std::list<cache_event> &events, enum cache_request_status status);
+  enum cache_request_status (data_cache::*m_rd_hit_l1d)(
+      new_addr_type addr, unsigned cache_index, mem_fetch *mf, unsigned time,
+      std::list<cache_event> &events, enum cache_request_status status, uint8_t *l1d_prediction_table);
+  enum cache_request_status (data_cache::*m_rd_hit_l2)(
+      new_addr_type addr, unsigned cache_index, mem_fetch *mf, unsigned time,
+      std::list<cache_event> &events, enum cache_request_status status, bool isBypassed);
   enum cache_request_status rd_hit_base(new_addr_type addr,
                                         unsigned cache_index, mem_fetch *mf,
                                         unsigned time,
                                         std::list<cache_event> &events,
                                         enum cache_request_status status);
+  enum cache_request_status rd_hit_base_l1d(new_addr_type addr,
+                                        unsigned cache_index, mem_fetch *mf,
+                                        unsigned time,
+                                        std::list<cache_event> &events,
+                                        enum cache_request_status status,
+                                        uint8_t *l1d_prediction_table);
+  
+  enum cache_request_status rd_hit_base_l2(new_addr_type addr,
+                                        unsigned cache_index, mem_fetch *mf,
+                                        unsigned time,
+                                        std::list<cache_event> &events,
+                                        enum cache_request_status status,
+                                        bool isBypassed);                                        
 
   /******* Read-miss configs *******/
   enum cache_request_status (data_cache::*m_rd_miss)(
       new_addr_type addr, unsigned cache_index, mem_fetch *mf, unsigned time,
       std::list<cache_event> &events, enum cache_request_status status);
+  enum cache_request_status (data_cache::*m_rd_miss_l1d)(
+      new_addr_type addr, unsigned cache_index, mem_fetch *mf, unsigned time,
+      std::list<cache_event> &events, enum cache_request_status status, uint8_t *l1d_prediction_table);
   enum cache_request_status rd_miss_base(new_addr_type addr,
                                          unsigned cache_index, mem_fetch *mf,
                                          unsigned time,
                                          std::list<cache_event> &events,
                                          enum cache_request_status status);
+    enum cache_request_status rd_miss_base_l1d(new_addr_type addr,
+                                         unsigned cache_index, mem_fetch *mf,
+                                         unsigned time,
+                                         std::list<cache_event> &events,
+                                         enum cache_request_status status,
+                                        uint8_t *l1d_prediction_table);
 };
 
 /// This is meant to model the first level data cache in Fermi.
@@ -1574,10 +1752,15 @@ class l1_cache : public data_cache {
                    L1_WR_ALLOC_R, L1_WRBK_ACC, gpu) {}
 
   virtual ~l1_cache() {}
+  
+  uint8_t l1d_prediction_table[256]; //  L1D Prediction table CS752
 
   virtual enum cache_request_status access(new_addr_type addr, mem_fetch *mf,
                                            unsigned time,
                                            std::list<cache_event> &events);
+  virtual enum cache_request_status access(new_addr_type addr, mem_fetch *mf,
+                                           unsigned time,
+                                           std::list<cache_event> &events, uint8_t *l1d_prediction_table);
   virtual uint8_t get_hashed_pc(new_addr_type addr,  mem_fetch *mf); // Rajesh CS752
   virtual void set_hashed_pc(new_addr_type addr,  mem_fetch *mf, uint8_t hashed_pc);
  protected:
@@ -1600,6 +1783,8 @@ class l2_cache : public data_cache {
                    L2_WR_ALLOC_R, L2_WRBK_ACC, gpu) {}
 
   virtual ~l2_cache() {}
+
+  virtual void set_bypass_bit_to_false_after_read (new_addr_type addr, mem_fetch *mf, bool bypassBit);
 
   virtual enum cache_request_status access(new_addr_type addr, mem_fetch *mf,
                                            unsigned time,

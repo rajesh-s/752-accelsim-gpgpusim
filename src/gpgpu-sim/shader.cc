@@ -859,6 +859,7 @@ void shader_core_ctx::decode() {
   if (m_inst_fetch_buffer.m_valid) {
     // decode 1 or 2 instructions and place them into ibuffer
     address_type pc = m_inst_fetch_buffer.m_pc;
+
     const warp_inst_t *pI1 = get_next_inst(m_inst_fetch_buffer.m_warp_id, pc);
     m_warp[m_inst_fetch_buffer.m_warp_id]->ibuffer_fill(0, pI1);
     m_warp[m_inst_fetch_buffer.m_warp_id]->inc_inst_in_pipeline();
@@ -1929,19 +1930,19 @@ void ldst_unit::L1_latency_queue_cycle() {
           m_L1D->access(mf_next->get_addr(), mf_next,
                         m_core->get_gpu()->gpu_sim_cycle +
                             m_core->get_gpu()->gpu_tot_sim_cycle,
-                        events);
+                        events, m_L1D->l1d_prediction_table);
 
       bool write_sent = was_write_sent(events);
       bool read_sent = was_read_sent(events);
 
       if (status == HIT) {
         
-        uint8_t previousPC = m_L1D->get_hashed_pc(mf_next->get_addr(), mf_next); // Rajesh CS752. try different hash functions
-        if(l1d_prediction_table[previousPC] > 0 ){ // Saturating counter stays 0 on 0
-          l1d_prediction_table[previousPC]--;
-        }
-
-        m_L1D->set_hashed_pc(mf_next->get_addr(), mf_next, (uint8_t) mf_next->get_pc());
+      // Do this in tag_array::access instead
+      // uint8_t previousPC = m_L1D->get_hashed_pc(mf_next->get_addr(), mf_next); // Rajesh CS752. try different hash functions
+      // if(l1d_prediction_table[previousPC] > 0 ){ // Saturating counter stays 0 on 0
+      //  l1d_prediction_table[previousPC]--;
+      //}
+      //m_L1D->set_hashed_pc(mf_next->get_addr(), mf_next, (uint8_t) mf_next->get_pc());
 
         assert(!read_sent);
         l1_latency_queue[j][0] = NULL;
@@ -2347,10 +2348,6 @@ void ldst_unit::init(mem_fetch_interface *icnt,
   m_sid = sid;
   m_tpc = tpc;
 
-  for (int i=0; i<256; i++){
-    l1d_prediction_table[i] = 0;
-  }
-
 #define STRSIZE 1024
   char L1T_name[STRSIZE];
   char L1C_name[STRSIZE];
@@ -2389,6 +2386,9 @@ ldst_unit::ldst_unit(mem_fetch_interface *icnt,
     m_L1D = new l1_cache(L1D_name, m_config->m_L1D_config, m_sid,
                          get_shader_normal_cache_id(), m_icnt, m_mf_allocator,
                          IN_L1D_MISS_QUEUE, core->get_gpu());
+    for (int i=0; i<256; i++){ // Initialize prediction table
+      m_L1D->l1d_prediction_table[i] = 4;
+    }
 
     l1_latency_queue.resize(m_config->m_L1D_config.l1_banks);
     assert(m_config->m_L1D_config.l1_latency > 0);
@@ -2566,7 +2566,7 @@ inst->space.get_type() != shared_space) { unsigned warp_id = inst->warp_id();
    pipelined_simd_unit::issue(reg_set);
 }
 */
-void ldst_unit::cycle() {
+void ldst_unit::cycle() { // Rajesh CS752 Assume it happens every cycle
   writeback();
   for (int i = 0; i < m_config->reg_file_port_throughput; ++i)
     m_operand_collector->step();
@@ -2574,7 +2574,7 @@ void ldst_unit::cycle() {
     if (m_pipeline_reg[stage]->empty() && !m_pipeline_reg[stage + 1]->empty())
       move_warp(m_pipeline_reg[stage], m_pipeline_reg[stage + 1]);
 
-  if (!m_response_fifo.empty()) {
+  if (!m_response_fifo.empty()) { // Rajesh CS752 stuff put on by the interconnect
     mem_fetch *mf = m_response_fifo.front();
     if (mf->get_access_type() == TEXTURE_ACC_R) {
       if (m_L1T->fill_port_free()) {
@@ -2600,7 +2600,6 @@ void ldst_unit::cycle() {
       } else {
         assert(!mf->get_is_write());  // L1 cache is write evict, allocate line
                                       // on load miss only
-
         bool bypassL1D = false;
         if (CACHE_GLOBAL == mf->get_inst().cache_op || (m_L1D == NULL)) {
           bypassL1D = true;
@@ -2608,9 +2607,16 @@ void ldst_unit::cycle() {
                    mf->get_access_type() ==
                        GLOBAL_ACC_W) {  // global memory access
           if (m_core->get_config()->gmem_skip_L1D) bypassL1D = true;
-        } else if (l1d_prediction_table[(uint8_t) mf->get_pc()] >= 12) { // % 256 threshold, CS 752
-          bypassL1D = true;
+          if (mf->get_access_type() == GLOBAL_ACC_R){ // This happens only on MISS since we are fetching a line from lower memory
+            //fprintf(stdout, "Type: %d Normal PC: %d Addr: %d Timestamp: %d \n",mf->get_access_type(),mf->get_pc() )
+            bool L1bypassbit = false; bool L2bypassbit = false;
+            if (m_L1D->l1d_prediction_table[(uint8_t) mf->get_pc()] >= 8) L1bypassbit = true;
+            extra_mf_fields::iterator e = m_extra_mf_fields.find(mf);
+            L2bypassbit = e->second.m_isBypassed;
+            if(L1bypassbit && !L2bypassbit) bypassL1D = true; // verification using L2 value before bypass
+          }
         }
+
         if (bypassL1D) {
           if (m_next_global == NULL) {
             mf->set_status(IN_SHADER_FETCHED,
@@ -2619,10 +2625,10 @@ void ldst_unit::cycle() {
             m_response_fifo.pop_front();
             m_next_global = mf;
           }
-        } else { // Rajesh CS752 !bypassed from paper
+        } else { // Rajesh CS752 Once items are available on the response queue
           if (m_L1D->fill_port_free()) {
             m_L1D->fill(mf, m_core->get_gpu()->gpu_sim_cycle +
-                                m_core->get_gpu()->gpu_tot_sim_cycle, l1d_prediction_table); // Rajesh CS752. This will update hashed_pc
+                                m_core->get_gpu()->gpu_tot_sim_cycle, m_L1D->l1d_prediction_table); // Rajesh CS752. This will update hashed_pc
             m_response_fifo.pop_front();
           }
         }
@@ -4380,7 +4386,7 @@ void simt_core_cluster::icnt_cycle() {
     mf->set_status(IN_CLUSTER_TO_SHADER_QUEUE,
                    m_gpu->gpu_sim_cycle + m_gpu->gpu_tot_sim_cycle);
     // m_memory_stats->memlatstat_read_done(mf,m_shader_config->max_warps_per_shader);
-    m_response_fifo.push_back(mf);
+    m_response_fifo.push_back(mf); // Rajesh CS752 Interconnect pushed data into this FIFO. Likely from L2
     m_stats->n_mem_to_simt[m_cluster_id] += mf->get_num_flits(false);
   }
 }

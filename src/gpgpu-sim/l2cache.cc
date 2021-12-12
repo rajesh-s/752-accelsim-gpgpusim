@@ -482,7 +482,7 @@ void memory_sub_partition::cache_cycle(unsigned cycle) {
         mf->set_status(IN_PARTITION_L2_FILL_QUEUE,
                        m_gpu->gpu_sim_cycle + m_gpu->gpu_tot_sim_cycle);
         m_L2cache->fill(mf, m_gpu->gpu_sim_cycle + m_gpu->gpu_tot_sim_cycle +
-                                m_memcpy_cycle_offset);
+                                m_memcpy_cycle_offset); // Rajesh CS752 L2 can send bypassBit here
         m_dram_L2_queue->pop();
       }
     } else if (!m_L2_icnt_queue->full()) {
@@ -529,7 +529,9 @@ void memory_sub_partition::cache_cycle(unsigned cycle) {
               mf->set_reply();
               mf->set_status(IN_PARTITION_L2_TO_ICNT_QUEUE,
                              m_gpu->gpu_sim_cycle + m_gpu->gpu_tot_sim_cycle);
-              m_L2_icnt_queue->push(mf);
+              m_L2_icnt_queue->push(mf); // Pushing read payload from L2 to interconnect
+              // Rajesh CS752 set bypass bit in l2 to false after sending it
+              m_L2cache->set_bypass_bit_to_false_after_read(mf->get_addr(), mf, false);
             }
             m_icnt_L2_queue->pop();
           } else {

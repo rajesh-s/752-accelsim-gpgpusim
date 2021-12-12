@@ -353,6 +353,20 @@ void tag_array::set_hashed_pc_from_tag(new_addr_type addr, mem_fetch *mf, uint8_
   }
 }
 
+void tag_array::set_bypass_bit_to_false_after_read_from_tag(new_addr_type addr, mem_fetch *mf, bool bypassBit){
+  unsigned set_index = m_config.set_index(addr);
+  new_addr_type tag = m_config.tag(addr);
+
+  // check for line in cache and update on HIT access with most recent PC. Rajesh CS752
+  for (unsigned way = 0; way < m_config.m_assoc; way++) {
+    unsigned index = set_index * m_config.m_assoc + way;
+    cache_block_t *line = m_lines[index];
+    if (line->m_tag == tag) {
+      line->m_bypassBit = false;
+    }
+  }
+}
+
 enum cache_request_status tag_array::access(new_addr_type addr, unsigned time,
                                             unsigned &idx, mem_fetch *mf) {
   bool wb = false;
@@ -412,14 +426,74 @@ enum cache_request_status tag_array::access(new_addr_type addr, unsigned time,
   return status;
 }
 
+enum cache_request_status tag_array::access(new_addr_type addr, unsigned time,
+                                            unsigned &idx, mem_fetch *mf, bool isBypassed) {
+  bool wb = false;
+  evicted_block_info evicted;
+  enum cache_request_status result = access(addr, time, idx, wb, evicted, mf, isBypassed);
+  assert(!wb);
+  return result;
+}
+
+enum cache_request_status tag_array::access(new_addr_type addr, unsigned time,
+                                            unsigned &idx, bool &wb,
+                                            evicted_block_info &evicted,
+                                            mem_fetch *mf, bool isBypassed) {
+  m_access++;
+  is_used = true;
+  shader_cache_access_log(m_core_id, m_type_id, 0);  // log accesses to cache
+  enum cache_request_status status = probe(addr, idx, mf);
+  switch (status) {
+    case HIT_RESERVED:
+      m_pending_hit++;
+    case HIT:
+      m_lines[idx]->set_last_access_time(time, mf->get_access_sector_mask());
+      m_lines[idx]->set_bypassBit(isBypassed, mf->get_access_sector_mask());
+      break;
+    case MISS:
+      m_miss++;
+      shader_cache_access_log(m_core_id, m_type_id, 1);  // log cache misses
+      if (m_config.m_alloc_policy == ON_MISS) {
+        if (m_lines[idx]->is_modified_line()) {
+          wb = true;
+          evicted.set_info(m_lines[idx]->m_block_addr,
+                           m_lines[idx]->get_modified_size());
+        }
+        m_lines[idx]->allocate(m_config.tag(addr), m_config.block_addr(addr), 
+                               time, mf->get_access_sector_mask());
+      }
+      break;
+    case SECTOR_MISS:
+      assert(m_config.m_cache_type == SECTOR);
+      m_sector_miss++;
+      shader_cache_access_log(m_core_id, m_type_id, 1);  // log cache misses
+      if (m_config.m_alloc_policy == ON_MISS) {
+        ((sector_cache_block *)m_lines[idx])
+            ->allocate_sector(time, mf->get_access_sector_mask());
+      }
+      break;
+    case RESERVATION_FAIL:
+      m_res_fail++;
+      shader_cache_access_log(m_core_id, m_type_id, 1);  // log cache misses
+      break;
+    default:
+      fprintf(stderr,
+              "tag_array::access - Error: Unknown"
+              "cache_request_status %d\n",
+              status);
+      abort();
+  }
+  return status;
+}
+
 void tag_array::fill(new_addr_type addr, unsigned time, mem_fetch *mf) {
   fill(addr, time, mf->get_access_sector_mask());
 }
 
-void tag_array::fill(new_addr_type addr, unsigned time, mem_fetch *mf, uint8_t *l1_prediction_table) {
+void tag_array::fill(new_addr_type addr, unsigned time, mem_fetch *mf, uint8_t *l1d_prediction_table) {
   // int temp = mf->get_pc(); uint8_t temp2 = (uint8_t) mf->get_pc();
   // fprintf(stdout,"Normal PC: %d Hashed PC: %d \n",temp,temp2); Rajesh CS752 Print statement confirmed that conversion from 32bit to 8bit is working as expected
-  fill(addr, time, mf->get_access_sector_mask(), (uint8_t) mf->get_pc(), l1_prediction_table); // Rajesh CS752
+  fill(addr, time, mf->get_access_sector_mask(), (uint8_t) mf->get_pc(), l1d_prediction_table); // Rajesh CS752
 }
 
 void tag_array::fill(new_addr_type addr, unsigned time,
@@ -438,12 +512,7 @@ void tag_array::fill(new_addr_type addr, unsigned time,
     ((sector_cache_block *)m_lines[idx])->allocate_sector(time, mask);
   }
 
-  m_lines[idx]->fill(time, mask);
-}
-
-void tag_array::fill(unsigned index, unsigned time, mem_fetch *mf) {
-  assert(m_config.m_alloc_policy == ON_MISS);
-  m_lines[index]->fill(time, mf->get_access_sector_mask()); // rajesh cs752
+  m_lines[idx]->fill(time, mask); // if it is already present, just update the time, because maybe we don't allocate cache while sending the request
 }
 
 void tag_array::fill(new_addr_type addr, unsigned time,
@@ -454,17 +523,31 @@ void tag_array::fill(new_addr_type addr, unsigned time,
   // assert(status==MISS||status==SECTOR_MISS); // MSHR should have prevented
   // redundant memory request
   
-  if (status == MISS){
-    if(l1d_prediction_table[m_lines[idx]->m_hashed_pc] < 16) // Saturating counter stays at 15
+  if (status == MISS){ // ON FILL if line is already present, we evict the previous
+    if(l1d_prediction_table[m_lines[idx]->m_hashed_pc] < 15 && m_lines[idx]->is_valid_line()) // Saturating counter stays at 15
       l1d_prediction_table[m_lines[idx]->m_hashed_pc]++ ;// Rajesh CS752 Victim Hashed PC
     m_lines[idx]->allocate(m_config.tag(addr), m_config.block_addr(addr), time,
                            mask, hashed_pc); // rajesh cs752
   } else if (status == SECTOR_MISS) {
     assert(m_config.m_cache_type == SECTOR);
-    ((sector_cache_block *)m_lines[idx])->allocate_sector(time, mask);
+    if(l1d_prediction_table[m_lines[idx]->m_hashed_pc] < 15 && m_lines[idx]->is_valid_line()) // Saturating counter stays at 15
+      l1d_prediction_table[m_lines[idx]->m_hashed_pc]++ ;// Rajesh CS752 Victim Hashed PC
+    ((sector_cache_block *)m_lines[idx])->allocate_sector(time, mask, hashed_pc);
   }
 
   m_lines[idx]->fill(time, mask);
+}
+
+void tag_array::fill(unsigned index, unsigned time, mem_fetch *mf) {
+  assert(m_config.m_alloc_policy == ON_MISS);
+  m_lines[index]->fill(time, mf->get_access_sector_mask()); // rajesh cs752
+}
+
+void tag_array::fill(unsigned index, unsigned time, mem_fetch *mf, uint8_t *l1d_prediction_table) {
+  assert(m_config.m_alloc_policy == ON_MISS);
+  if(l1d_prediction_table[m_lines[index]->m_hashed_pc] < 15 && m_lines[index]->is_valid_line()) // Saturating counter stays at 15
+    l1d_prediction_table[m_lines[index]->m_hashed_pc]++ ;// Rajesh CS752 Victim Hashed PC
+  m_lines[index]->fill(time, mf->get_access_sector_mask(), (uint8_t) mf->get_pc()); // rajesh cs752
 }
 
 // TODO: we need write back the flushed data to the upper level
@@ -1077,7 +1160,7 @@ void baseline_cache::cycle() {
     mem_fetch *mf = m_miss_queue.front();
     if (!m_memport->full(mf->size(), mf->get_is_write())) {
       m_miss_queue.pop_front();
-      m_memport->push(mf);
+      m_memport->push(mf); // Rajesh CS752. Send bypassL1D to L2 here embedded in extra_mf_fields
     }
   }
   bool data_port_busy = !m_bandwidth_management.data_port_free();
@@ -1113,7 +1196,7 @@ void baseline_cache::fill(mem_fetch *mf, unsigned time, uint8_t *l1d_prediction_
   mf->set_data_size(e->second.m_data_size);
   mf->set_addr(e->second.m_addr);
   if (m_config.m_alloc_policy == ON_MISS)
-    m_tag_array->fill(e->second.m_cache_index, time, mf);
+    m_tag_array->fill(e->second.m_cache_index, time, mf, l1d_prediction_table);
   else if (m_config.m_alloc_policy == ON_FILL) {
     m_tag_array->fill(e->second.m_block_addr, time, mf, l1d_prediction_table);
     if (m_config.is_streaming()) m_tag_array->remove_pending_line(mf);
@@ -1243,6 +1326,55 @@ void baseline_cache::send_read_request(new_addr_type addr,
     }
     m_extra_mf_fields[mf] = extra_mf_fields(
         mshr_addr, mf->get_addr(), cache_index, mf->get_data_size(), m_config);
+    mf->set_data_size(m_config.get_atom_sz());
+    mf->set_addr(mshr_addr);
+    m_miss_queue.push_back(mf);
+    mf->set_status(m_miss_queue_status, time);
+    if (!wa) events.push_back(cache_event(READ_REQUEST_SENT));
+
+    do_miss = true;
+  } else if (mshr_hit && !mshr_avail)
+    m_stats.inc_fail_stats(mf->get_access_type(), MSHR_MERGE_ENRTY_FAIL);
+  else if (!mshr_hit && !mshr_avail)
+    m_stats.inc_fail_stats(mf->get_access_type(), MSHR_ENRTY_FAIL);
+  else
+    assert(0);
+}
+
+/// Read miss handler. Check MSHR hit or MSHR available
+void baseline_cache::send_read_request(new_addr_type addr,
+                                       new_addr_type block_addr,
+                                       unsigned cache_index, mem_fetch *mf,
+                                       unsigned time, bool &do_miss, bool &wb,
+                                       evicted_block_info &evicted,
+                                       std::list<cache_event> &events,
+                                       bool read_only, bool wa, bool isBypassed) {
+  new_addr_type mshr_addr = m_config.mshr_addr(mf->get_addr());
+  bool mshr_hit = m_mshrs.probe(mshr_addr);
+  bool mshr_avail = !m_mshrs.full(mshr_addr);
+  if (mshr_hit && mshr_avail) {
+    if (read_only)
+      m_tag_array->access(block_addr, time, cache_index, mf);
+    else
+      m_tag_array->access(block_addr, time, cache_index, wb, evicted, mf);
+
+    m_mshrs.add(mshr_addr, mf);
+    m_stats.inc_stats(mf->get_access_type(), MSHR_HIT);
+    do_miss = true;
+
+  } else if (!mshr_hit && mshr_avail &&
+             (m_miss_queue.size() < m_config.m_miss_queue_size)) {
+    if (read_only)
+      m_tag_array->access(block_addr, time, cache_index, mf);
+    else
+      m_tag_array->access(block_addr, time, cache_index, wb, evicted, mf);
+
+    m_mshrs.add(mshr_addr, mf);
+    if (m_config.is_streaming() && m_config.m_cache_type == SECTOR) {
+      m_tag_array->add_pending_line(mf);
+    }
+    m_extra_mf_fields[mf] = extra_mf_fields(
+        mshr_addr, mf->get_addr(), cache_index, mf->get_data_size(), m_config, isBypassed); // Rajesh CS752
     mf->set_data_size(m_config.get_atom_sz());
     mf->set_addr(mshr_addr);
     m_miss_queue.push_back(mf);
@@ -1627,6 +1759,47 @@ enum cache_request_status data_cache::rd_hit_base(
   return HIT;
 }
 
+enum cache_request_status data_cache::rd_hit_base_l1d(
+    new_addr_type addr, unsigned cache_index, mem_fetch *mf, unsigned time,
+    std::list<cache_event> &events, enum cache_request_status status, uint8_t *l1d_prediction_table) {
+  new_addr_type block_addr = m_config.block_addr(addr);
+  
+  uint8_t storedhashedPC = m_tag_array->get_hashed_pc_from_tag(addr, mf); // Rajesh CS752
+  //fprintf(stdout,"HIT B: time: %d, PC: %d, storedhashedPC=%d pred_entry = %d\n",time,mf->get_pc(),storedhashedPC,l1d_prediction_table[storedhashedPC]);
+  if(l1d_prediction_table[storedhashedPC] > 0 ){ // Saturating counter stays 0 on 0
+    l1d_prediction_table[storedhashedPC]--;
+  }
+  m_tag_array->set_hashed_pc_from_tag(addr, mf, (uint8_t) mf->get_pc()); // ASSGINMENT ON ACCESS
+  //fprintf(stdout,"HIT A: time: %d, tag_array::access PC: %d, sethashedPC=%d storedhashedPC=%d, pred_entry = %d\n",time,mf->get_pc(),(uint8_t) mf->get_pc(),storedhashedPC,l1d_prediction_table[storedhashedPC]);
+
+  m_tag_array->access(block_addr, time, cache_index, mf); // Update LRU status
+  // Atomics treated as global read/write requests - Perform read, mark line as
+  // MODIFIED
+  if (mf->isatomic()) {
+    assert(mf->get_access_type() == GLOBAL_ACC_R);
+    cache_block_t *block = m_tag_array->get_block(cache_index);
+    block->set_status(MODIFIED,
+                      mf->get_access_sector_mask());  // mark line as dirty
+  }
+  return HIT;
+}
+
+enum cache_request_status data_cache::rd_hit_base_l2(
+    new_addr_type addr, unsigned cache_index, mem_fetch *mf, unsigned time,
+    std::list<cache_event> &events, enum cache_request_status status, bool isBypassed) {
+  new_addr_type block_addr = m_config.block_addr(addr);
+  m_tag_array->access(block_addr, time, cache_index, mf, isBypassed);
+  // Atomics treated as global read/write requests - Perform read, mark line as
+  // MODIFIED
+  if (mf->isatomic()) {
+    assert(mf->get_access_type() == GLOBAL_ACC_R);
+    cache_block_t *block = m_tag_array->get_block(cache_index);
+    block->set_status(MODIFIED,
+                      mf->get_access_sector_mask());  // mark line as dirty
+  }
+  return HIT;
+}
+
 /****** Read miss functions (Set by config file) ******/
 
 /// Baseline read miss: Send read request to lower level memory,
@@ -1647,6 +1820,52 @@ enum cache_request_status data_cache::rd_miss_base(
   evicted_block_info evicted;
   send_read_request(addr, block_addr, cache_index, mf, time, do_miss, wb,
                     evicted, events, false, false);
+
+  if (do_miss) {
+    // If evicted block is modified and not a write-through
+    // (already modified lower level)
+    if (wb && (m_config.m_write_policy != WRITE_THROUGH)) {
+      mem_fetch *wb = m_memfetch_creator->alloc(
+          evicted.m_block_addr, m_wrbk_type, evicted.m_modified_size, true,
+          m_gpu->gpu_tot_sim_cycle + m_gpu->gpu_sim_cycle);
+      // the evicted block may have wrong chip id when advanced L2 hashing  is
+      // used, so set the right chip address from the original mf
+      wb->set_chip(mf->get_tlx_addr().chip);
+      wb->set_parition(mf->get_tlx_addr().sub_partition);
+      send_write_request(wb, WRITE_BACK_REQUEST_SENT, time, events);
+    }
+    return MISS;
+  }
+  return RESERVATION_FAIL;
+}
+
+/****** Read miss functions (Set by config file) ******/
+
+/// Baseline read miss: Send read request to lower level memory,
+// perform write-back as necessary
+enum cache_request_status data_cache::rd_miss_base_l1d(
+    new_addr_type addr, unsigned cache_index, mem_fetch *mf, unsigned time,
+    std::list<cache_event> &events, enum cache_request_status status, uint8_t *l1d_prediction_table) {
+  // fprintf(stdout,"L1 Misses are coming here\n"); Verified
+  if (miss_queue_full(1)) {
+    // cannot handle request this cycle
+    // (might need to generate two requests)
+    m_stats.inc_fail_stats(mf->get_access_type(), MISS_QUEUE_FULL);
+    return RESERVATION_FAIL;
+  }
+
+  bool isBypassed = false;
+  int threshold = 8; // From SDBP paper
+  if(l1d_prediction_table[(uint8_t) mf->get_pc()] >= threshold){
+    isBypassed = true;
+  }
+
+  new_addr_type block_addr = m_config.block_addr(addr);
+  bool do_miss = false;
+  bool wb = false;
+  evicted_block_info evicted;
+  send_read_request(addr, block_addr, cache_index, mf, time, do_miss, wb,
+                    evicted, events, false, false, isBypassed);
 
   if (do_miss) {
     // If evicted block is modified and not a write-through
@@ -1750,6 +1969,87 @@ enum cache_request_status data_cache::process_tag_probe(
   m_bandwidth_management.use_data_port(mf, access_status, events);
   return access_status;
 }
+enum cache_request_status data_cache::process_tag_probe(
+    bool wr, enum cache_request_status probe_status, new_addr_type addr,
+    unsigned cache_index, mem_fetch *mf, unsigned time,
+    std::list<cache_event> &events, uint8_t *l1d_prediction_table) {
+  // Each function pointer ( m_[rd/wr]_[hit/miss] ) is set in the
+  // data_cache constructor to reflect the corresponding cache configuration
+  // options. Function pointers were used to avoid many long conditional
+  // branches resulting from many cache configuration options.
+  cache_request_status access_status = probe_status;
+  if (wr) {  // Write
+    if (probe_status == HIT) {
+      access_status =
+          (this->*m_wr_hit)(addr, cache_index, mf, time, events, probe_status);
+    } else if ((probe_status != RESERVATION_FAIL) ||
+               (probe_status == RESERVATION_FAIL &&
+                m_config.m_write_alloc_policy == NO_WRITE_ALLOCATE)) {
+      access_status =
+          (this->*m_wr_miss)(addr, cache_index, mf, time, events, probe_status);
+    } else {
+      // the only reason for reservation fail here is LINE_ALLOC_FAIL (i.e all
+      // lines are reserved)
+      m_stats.inc_fail_stats(mf->get_access_type(), LINE_ALLOC_FAIL);
+    }
+  } else {  // Read
+    if (probe_status == HIT) {
+      access_status =
+          (this->*m_rd_hit_l1d)(addr, cache_index, mf, time, events, probe_status, l1d_prediction_table);
+    } else if (probe_status != RESERVATION_FAIL) {
+      access_status =
+          (this->*m_rd_miss_l1d)(addr, cache_index, mf, time, events, probe_status, l1d_prediction_table);
+    } else {
+      // the only reason for reservation fail here is LINE_ALLOC_FAIL (i.e all
+      // lines are reserved)
+      m_stats.inc_fail_stats(mf->get_access_type(), LINE_ALLOC_FAIL);
+    }
+  }
+
+  m_bandwidth_management.use_data_port(mf, access_status, events);
+  return access_status;
+}
+
+enum cache_request_status data_cache::process_tag_probe(
+    bool wr, enum cache_request_status probe_status, new_addr_type addr,
+    unsigned cache_index, mem_fetch *mf, unsigned time,
+    std::list<cache_event> &events, bool isBypassed) {
+  // Each function pointer ( m_[rd/wr]_[hit/miss] ) is set in the
+  // data_cache constructor to reflect the corresponding cache configuration
+  // options. Function pointers were used to avoid many long conditional
+  // branches resulting from many cache configuration options.
+  cache_request_status access_status = probe_status;
+  if (wr) {  // Write
+    if (probe_status == HIT) {
+      access_status =
+          (this->*m_wr_hit)(addr, cache_index, mf, time, events, probe_status);
+    } else if ((probe_status != RESERVATION_FAIL) ||
+               (probe_status == RESERVATION_FAIL &&
+                m_config.m_write_alloc_policy == NO_WRITE_ALLOCATE)) {
+      access_status =
+          (this->*m_wr_miss)(addr, cache_index, mf, time, events, probe_status);
+    } else {
+      // the only reason for reservation fail here is LINE_ALLOC_FAIL (i.e all
+      // lines are reserved)
+      m_stats.inc_fail_stats(mf->get_access_type(), LINE_ALLOC_FAIL);
+    }
+  } else {  // Read
+    if (probe_status == HIT) {
+      access_status =
+          (this->*m_rd_hit_l2)(addr, cache_index, mf, time, events, probe_status, isBypassed);
+    } else if (probe_status != RESERVATION_FAIL) {
+      access_status =
+          (this->*m_rd_miss)(addr, cache_index, mf, time, events, probe_status);
+    } else {
+      // the only reason for reservation fail here is LINE_ALLOC_FAIL (i.e all
+      // lines are reserved)
+      m_stats.inc_fail_stats(mf->get_access_type(), LINE_ALLOC_FAIL);
+    }
+  }
+
+  m_bandwidth_management.use_data_port(mf, access_status, events);
+  return access_status;
+}
 
 // Both the L1 and L2 currently use the same access function.
 // Differentiation between the two caches is done through configuration
@@ -1774,8 +2074,44 @@ enum cache_request_status data_cache::access(new_addr_type addr, mem_fetch *mf,
   return access_status;
 }
 
+enum cache_request_status data_cache::access(new_addr_type addr, mem_fetch *mf,
+                                             unsigned time,
+                                             std::list<cache_event> &events, uint8_t *l1d_prediction_table) {
+  assert(mf->get_data_size() <= m_config.get_atom_sz());
+  bool wr = mf->get_is_write();
+  new_addr_type block_addr = m_config.block_addr(addr);
+  unsigned cache_index = (unsigned)-1;
+  enum cache_request_status probe_status =
+      m_tag_array->probe(block_addr, cache_index, mf, true);
+  enum cache_request_status access_status =
+      process_tag_probe(wr, probe_status, addr, cache_index, mf, time, events, l1d_prediction_table); // Rajesh CS752 This will update LRU status on reads
+  m_stats.inc_stats(mf->get_access_type(),
+                    m_stats.select_stats_status(probe_status, access_status));
+  m_stats.inc_stats_pw(mf->get_access_type(), m_stats.select_stats_status(
+                                                  probe_status, access_status));
+  return access_status;
+}
+
+enum cache_request_status data_cache::access(new_addr_type addr, mem_fetch *mf,
+                                             unsigned time,
+                                             std::list<cache_event> &events, bool isBypassed) {
+  assert(mf->get_data_size() <= m_config.get_atom_sz());
+  bool wr = mf->get_is_write();
+  new_addr_type block_addr = m_config.block_addr(addr);
+  unsigned cache_index = (unsigned)-1;
+  enum cache_request_status probe_status =
+      m_tag_array->probe(block_addr, cache_index, mf, true);
+  enum cache_request_status access_status =
+      process_tag_probe(wr, probe_status, addr, cache_index, mf, time, events, isBypassed); // Rajesh CS752 This will update LRU status on reads
+  m_stats.inc_stats(mf->get_access_type(),
+                    m_stats.select_stats_status(probe_status, access_status));
+  m_stats.inc_stats_pw(mf->get_access_type(), m_stats.select_stats_status(
+                                                  probe_status, access_status));
+  return access_status;
+}
+
 uint8_t l1_cache::get_hashed_pc(new_addr_type addr,  mem_fetch *mf){
-  m_tag_array->get_hashed_pc_from_tag(addr,mf);
+  return m_tag_array->get_hashed_pc_from_tag(addr,mf);
 }
 
 void l1_cache::set_hashed_pc(new_addr_type addr,  mem_fetch *mf, uint8_t hashed_pc){
@@ -1792,17 +2128,28 @@ enum cache_request_status l1_cache::access(new_addr_type addr, mem_fetch *mf,
   return data_cache::access(addr, mf, time, events);
 }
 
+enum cache_request_status l1_cache::access(new_addr_type addr, mem_fetch *mf, // CS752 Rajesh
+                                           unsigned time,
+                                           std::list<cache_event> &events, uint8_t *l1d_prediction_table) {
+  return data_cache::access(addr, mf, time, events, l1d_prediction_table);
+}
 // The l2 cache access function calls the base data_cache access
 // implementation.  When the L2 needs to diverge from L1, L2 specific
 // changes should be made here.
 enum cache_request_status l2_cache::access(new_addr_type addr, mem_fetch *mf,
                                            unsigned time,
                                            std::list<cache_event> &events) {
-  return data_cache::access(addr, mf, time, events);
+  //mf->get_extra..
+  extra_mf_fields_lookup::iterator e = m_extra_mf_fields.find(mf);
+  return data_cache::access(addr, mf, time, events, e->second.m_isBypassed);
+}
+
+void l2_cache::set_bypass_bit_to_false_after_read (new_addr_type addr, mem_fetch *mf, bool bypassBit){
+  m_tag_array->set_bypass_bit_to_false_after_read_from_tag (addr,mf,bypassBit);
 }
 
 /// Access function for tex_cache
-/// return values: RESERVATION_FAIL if request could not be accepted
+/// return values: RESERVATION_FAIL ifs request could not be accepted
 /// otherwise returns HIT_RESERVED or MISS; NOTE: *never* returns HIT
 /// since unlike a normal CPU cache, a "HIT" in texture cache does not
 /// mean the data is ready (still need to get through fragment fifo)
