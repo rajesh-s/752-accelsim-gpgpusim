@@ -380,6 +380,7 @@ enum cache_request_status tag_array::access(new_addr_type addr, unsigned time,
                                             unsigned &idx, bool &wb,
                                             evicted_block_info &evicted,
                                             mem_fetch *mf) {
+  //fprintf(stdout, "Tag Array Normal PC %d\n",mf->get_pc());
   m_access++;
   is_used = true;
   shader_cache_access_log(m_core_id, m_type_id, 0);  // log accesses to cache
@@ -490,10 +491,9 @@ void tag_array::fill(new_addr_type addr, unsigned time, mem_fetch *mf) {
   fill(addr, time, mf->get_access_sector_mask());
 }
 
-void tag_array::fill(new_addr_type addr, unsigned time, mem_fetch *mf, uint8_t *l1d_prediction_table) {
-  // int temp = mf->get_pc(); uint8_t temp2 = (uint8_t) mf->get_pc();
-  // fprintf(stdout,"Normal PC: %d Hashed PC: %d \n",temp,temp2); Rajesh CS752 Print statement confirmed that conversion from 32bit to 8bit is working as expected
-  fill(addr, time, mf->get_access_sector_mask(), (uint8_t) mf->get_pc(), l1d_prediction_table); // Rajesh CS752
+void tag_array::fill(new_addr_type addr, unsigned time, mem_fetch *mf, uint8_t *l1d_prediction_table,uint8_t hashed_pc) {
+  //fprintf(stdout,"Normal PC: %d \n",mf->get_pc()); //Rajesh CS752 Print statement confirmed that conversion from 32bit to 8bit is working as expected
+  fill(addr, time, mf->get_access_sector_mask(), hashed_pc, l1d_prediction_table); // Rajesh CS752
 }
 
 void tag_array::fill(new_addr_type addr, unsigned time,
@@ -522,16 +522,18 @@ void tag_array::fill(new_addr_type addr, unsigned time,
   enum cache_request_status status = probe(addr, idx, mask);
   // assert(status==MISS||status==SECTOR_MISS); // MSHR should have prevented
   // redundant memory request
-  
+
   if (status == MISS){ // ON FILL if line is already present, we evict the previous
     if(l1d_prediction_table[m_lines[idx]->m_hashed_pc] < 15 && m_lines[idx]->is_valid_line()) // Saturating counter stays at 15
       l1d_prediction_table[m_lines[idx]->m_hashed_pc]++ ;// Rajesh CS752 Victim Hashed PC
+      fprintf(stdout,"MISS A Time: %d PC: %d Value: %d\n", time, hashed_pc, l1d_prediction_table[idx]);
     m_lines[idx]->allocate(m_config.tag(addr), m_config.block_addr(addr), time,
                            mask, hashed_pc); // rajesh cs752
   } else if (status == SECTOR_MISS) {
     assert(m_config.m_cache_type == SECTOR);
     if(l1d_prediction_table[m_lines[idx]->m_hashed_pc] < 15 && m_lines[idx]->is_valid_line()) // Saturating counter stays at 15
       l1d_prediction_table[m_lines[idx]->m_hashed_pc]++ ;// Rajesh CS752 Victim Hashed PC
+      fprintf(stdout,"MISS B Time: %d PC: %d Value: %d\n", time, hashed_pc, l1d_prediction_table[idx]);
     ((sector_cache_block *)m_lines[idx])->allocate_sector(time, mask, hashed_pc);
   }
 
@@ -543,11 +545,13 @@ void tag_array::fill(unsigned index, unsigned time, mem_fetch *mf) {
   m_lines[index]->fill(time, mf->get_access_sector_mask()); // rajesh cs752
 }
 
-void tag_array::fill(unsigned index, unsigned time, mem_fetch *mf, uint8_t *l1d_prediction_table) {
+void tag_array::fill(unsigned index, unsigned time, mem_fetch *mf, uint8_t *l1d_prediction_table, uint8_t hashed_pc) {
   assert(m_config.m_alloc_policy == ON_MISS);
-  if(l1d_prediction_table[m_lines[index]->m_hashed_pc] < 15 && m_lines[index]->is_valid_line()) // Saturating counter stays at 15
+  if(l1d_prediction_table[m_lines[index]->m_hashed_pc] < 15 && m_lines[index]->is_valid_line()){ // Saturating counter stays at 15
     l1d_prediction_table[m_lines[index]->m_hashed_pc]++ ;// Rajesh CS752 Victim Hashed PC
-  m_lines[index]->fill(time, mf->get_access_sector_mask(), (uint8_t) mf->get_pc()); // rajesh cs752
+    fprintf(stdout,"MISS C Time: %d PC: %d Value: %d\n", time, hashed_pc, l1d_prediction_table[index]);
+  }
+  m_lines[index]->fill(time, mf->get_access_sector_mask(), hashed_pc); // rajesh cs752
 }
 
 // TODO: we need write back the flushed data to the upper level
@@ -1171,7 +1175,7 @@ void baseline_cache::cycle() {
 
 /// Interface for response from lower memory level (model bandwidth restictions
 /// in caller)
-void baseline_cache::fill(mem_fetch *mf, unsigned time, uint8_t *l1d_prediction_table) {
+void baseline_cache::fill(mem_fetch *mf, unsigned time, uint8_t *l1d_prediction_table, uint8_t hashed_pc) {
   if (m_config.m_mshr_type == SECTOR_ASSOC) {
     assert(mf->get_original_mf());
     extra_mf_fields_lookup::iterator e =
@@ -1197,9 +1201,9 @@ void baseline_cache::fill(mem_fetch *mf, unsigned time, uint8_t *l1d_prediction_
   mf->set_addr(e->second.m_addr);
   
   if (m_config.m_alloc_policy == ON_MISS)
-    m_tag_array->fill(e->second.m_cache_index, time, mf, l1d_prediction_table);
+    m_tag_array->fill(e->second.m_cache_index, time, mf, l1d_prediction_table, hashed_pc);
   else if (m_config.m_alloc_policy == ON_FILL) {
-    m_tag_array->fill(e->second.m_block_addr, time, mf, l1d_prediction_table);
+    m_tag_array->fill(e->second.m_block_addr, time, mf, l1d_prediction_table, hashed_pc);
     if (m_config.is_streaming()) m_tag_array->remove_pending_line(mf);
   } else
     abort();
@@ -1769,14 +1773,13 @@ enum cache_request_status data_cache::rd_hit_base_l1d(
     new_addr_type addr, unsigned cache_index, mem_fetch *mf, unsigned time,
     std::list<cache_event> &events, enum cache_request_status status, uint8_t *l1d_prediction_table) {
   new_addr_type block_addr = m_config.block_addr(addr);
-  
+  // fprintf(stdout, "Data Cache Normal PC %d\n",mf->get_pc()); Verified
   uint8_t storedhashedPC = m_tag_array->get_hashed_pc_from_tag(addr, mf); // Rajesh CS752
-  //fprintf(stdout,"HIT B: time: %d, PC: %d\n",time,mf->get_pc());
   if(l1d_prediction_table[storedhashedPC] > 0 ){ // Saturating counter stays 0 on 0
     l1d_prediction_table[storedhashedPC]--;
+    fprintf(stdout,"HIT Time: %d PC: %d Value: %d\n", time, mf->get_pc(), l1d_prediction_table[storedhashedPC]);
   }
   m_tag_array->set_hashed_pc_from_tag(addr, mf, (uint8_t) mf->get_pc()); // ASSGINMENT ON ACCESS
-  //fprintf(stdout,"HIT A: time: %d, tag_array::access PC: %d, sethashedPC=%d storedhashedPC=%d, pred_entry = %d\n",time,mf->get_pc(),(uint8_t) mf->get_pc(),storedhashedPC,l1d_prediction_table[storedhashedPC]);
 
   m_tag_array->access(block_addr, time, cache_index, mf); // Update LRU status
   // Atomics treated as global read/write requests - Perform read, mark line as
@@ -1865,6 +1868,7 @@ enum cache_request_status data_cache::rd_miss_base_l1d(
   if(l1d_prediction_table[(uint8_t) mf->get_pc()] >= threshold){
     isBypassed = true;
   }
+  fprintf(stdout,"Current prediction to be sent to L2: %d PC:%d \n",isBypassed, mf->get_pc());
 
   new_addr_type block_addr = m_config.block_addr(addr);
   bool do_miss = false;
@@ -1872,6 +1876,12 @@ enum cache_request_status data_cache::rd_miss_base_l1d(
   evicted_block_info evicted;
   send_read_request(addr, block_addr, cache_index, mf, time, do_miss, wb,
                     evicted, events, false, false, isBypassed);
+
+  if(l1d_prediction_table[(uint8_t) mf->get_pc()] < 15) // && m_lines[cache_index]->is_valid_line()) // Saturating counter stays at 15
+    l1d_prediction_table[(uint8_t) mf->get_pc()]++ ;// Rajesh CS752 Victim Hashed PC
+  //if(l1d_prediction_table[(uint8_t) m_tag_array->get_hashed_pc_from_tag(evicted.m_block_addr,0)] < 15) // && m_lines[idx]->is_valid_line()) // Saturating counter stays at 15
+  //  l1d_prediction_table[(uint8_t) m_tag_array->get_hashed_pc_from_tag(evicted.m_block_addr,0)]++;
+  fprintf(stdout,"MISS D Time: %d PC: %d Value: %d\n", time, mf->get_pc(), l1d_prediction_table[(uint8_t) mf->get_pc()]);
 
   if (do_miss) {
     // If evicted block is modified and not a write-through
@@ -2146,7 +2156,8 @@ enum cache_request_status l2_cache::access(new_addr_type addr, mem_fetch *mf,
                                            unsigned time,
                                            std::list<cache_event> &events) {
   //mf->get_extra..
-  extra_mf_fields_lookup::iterator e = m_extra_mf_fields.find(mf);
+  extra_mf_fields_lookup::iterator e = m_extra_mf_fields.find(mf->get_original_mf());
+  fprintf(stdout,"The prediction stored to L2: %d PC:%d \n",e->second.m_isBypassed, mf->get_pc());
   return data_cache::access(addr, mf, time, events, e->second.m_isBypassed);
 }
 

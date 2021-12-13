@@ -1926,6 +1926,7 @@ void ldst_unit::L1_latency_queue_cycle() {
     if ((l1_latency_queue[j][0]) != NULL) {
       mem_fetch *mf_next = l1_latency_queue[j][0];
       std::list<cache_event> events;
+      // fprintf(stdout,"Normal PC:%d\n",mf_next->get_pc()); Verified
       enum cache_request_status status =
           m_L1D->access(mf_next->get_addr(), mf_next,
                         m_core->get_gpu()->gpu_sim_cycle +
@@ -2607,12 +2608,12 @@ void ldst_unit::cycle() { // Rajesh CS752 Assume it happens every cycle
                    mf->get_access_type() ==
                        GLOBAL_ACC_W) {  // global memory access
           if (m_core->get_config()->gmem_skip_L1D) bypassL1D = true;
-          if (mf->get_access_type() == GLOBAL_ACC_R){ // This happens only on MISS since we are fetching a line from lower memory
-            //fprintf(stdout, "Type: %d Normal PC: %d Addr: %d Timestamp: %d \n",mf->get_access_type(),mf->get_pc() )
+          if (mf->get_access_type() == GLOBAL_ACC_R){ // This happens only on MISS since we are fetching a line from lower memory )
             bool L1bypassbit = false; bool L2bypassbit = false;
-            if (m_L1D->l1d_prediction_table[(uint8_t) mf->get_pc()] >= 8) L1bypassbit = true;
+            if (m_L1D->l1d_prediction_table[(uint8_t) mf->get_original_mf()->get_pc()] >= 8) L1bypassbit = true; // Rajesh CS752  threshold computation
             L2bypassbit = m_L1D->get_extra_mf_fields(mf->get_original_mf());
-            if(L1bypassbit && !L2bypassbit) bypassL1D = true; // verification using L2 value before bypass
+            if(L1bypassbit && !L2bypassbit) bypassL1D = true;
+            fprintf(stdout,"PC:%d L2bypassbit:%d L1bypassbit:%d\n",mf->get_original_mf()->get_pc(),L2bypassbit,L1bypassbit);  // Rajesh CS752 verification using L2 value before bypass
           }
         }
 
@@ -2627,7 +2628,7 @@ void ldst_unit::cycle() { // Rajesh CS752 Assume it happens every cycle
         } else { // Rajesh CS752 Once items are available on the response queue
           if (m_L1D->fill_port_free()) {
             m_L1D->fill(mf, m_core->get_gpu()->gpu_sim_cycle +
-                                m_core->get_gpu()->gpu_tot_sim_cycle, m_L1D->l1d_prediction_table); // Rajesh CS752. This will update hashed_pc
+                                m_core->get_gpu()->gpu_tot_sim_cycle, m_L1D->l1d_prediction_table, (uint8_t) mf->get_original_mf()->get_pc()); // Rajesh CS752. This will update hashed_pc
             m_response_fifo.pop_front();
           }
         }

@@ -957,9 +957,9 @@ class tag_array {
                                    unsigned &idx, bool &wb,
                                    evicted_block_info &evicted, mem_fetch *mf, bool isBypassed);
   void fill(new_addr_type addr, unsigned time, mem_fetch *mf);
-  void fill(new_addr_type addr, unsigned time, mem_fetch *mf, uint8_t *l1d_prediction_table);
+  void fill(new_addr_type addr, unsigned time, mem_fetch *mf, uint8_t *l1d_prediction_table, uint8_t hashed_pc);
   void fill(unsigned idx, unsigned time, mem_fetch *mf);
-  void fill(unsigned idx, unsigned time, mem_fetch *mf, uint8_t *l1d_prediction_table);
+  void fill(unsigned idx, unsigned time, mem_fetch *mf, uint8_t *l1d_prediction_table, uint8_t hashed_pc);
   void fill(new_addr_type addr, unsigned time, mem_access_sector_mask_t mask);
   void fill(new_addr_type addr, unsigned time, mem_access_sector_mask_t mask, uint8_t hashed_pc, uint8_t *l1d_prediction_table);
   uint8_t get_hashed_pc_from_tag(new_addr_type addr,  mem_fetch *mf);
@@ -1303,7 +1303,7 @@ class baseline_cache : public cache_t {
   /// Interface for response from lower memory level (model bandwidth
   /// restictions in caller)
   void fill(mem_fetch *mf, unsigned time);
-  void fill(mem_fetch *mf, unsigned time, uint8_t *l1d_prediction_table); // CS752 Rajesh
+  void fill(mem_fetch *mf, unsigned time, uint8_t *l1d_prediction_table, uint8_t hashed_pc); // CS752 Rajesh
   /// Checks if mf is waiting to be filled by lower memory level
   bool waiting_for_fill(mem_fetch *mf);
   /// Are any (accepted) accesses that had to wait for memory now ready? (does
