@@ -2611,8 +2611,7 @@ void ldst_unit::cycle() { // Rajesh CS752 Assume it happens every cycle
             //fprintf(stdout, "Type: %d Normal PC: %d Addr: %d Timestamp: %d \n",mf->get_access_type(),mf->get_pc() )
             bool L1bypassbit = false; bool L2bypassbit = false;
             if (m_L1D->l1d_prediction_table[(uint8_t) mf->get_pc()] >= 8) L1bypassbit = true;
-            extra_mf_fields::iterator e = m_extra_mf_fields.find(mf);
-            L2bypassbit = e->second.m_isBypassed;
+            L2bypassbit = m_L1D->get_extra_mf_fields(mf->get_original_mf());
             if(L1bypassbit && !L2bypassbit) bypassL1D = true; // verification using L2 value before bypass
           }
         }

@@ -1195,6 +1195,7 @@ void baseline_cache::fill(mem_fetch *mf, unsigned time, uint8_t *l1d_prediction_
   assert(e->second.m_valid);
   mf->set_data_size(e->second.m_data_size);
   mf->set_addr(e->second.m_addr);
+  
   if (m_config.m_alloc_policy == ON_MISS)
     m_tag_array->fill(e->second.m_cache_index, time, mf, l1d_prediction_table);
   else if (m_config.m_alloc_policy == ON_FILL) {
@@ -1390,6 +1391,11 @@ void baseline_cache::send_read_request(new_addr_type addr,
     assert(0);
 }
 
+bool baseline_cache::get_extra_mf_fields(mem_fetch *mf) {
+     extra_mf_fields_lookup::iterator e= m_extra_mf_fields.find(mf);
+     bool L2bypassbit= e->second.m_isBypassed;
+     return L2bypassbit;
+}
 /// Sends write request to lower level memory (write or writeback)
 void data_cache::send_write_request(mem_fetch *mf, cache_event request,
                                     unsigned time,
@@ -1765,7 +1771,7 @@ enum cache_request_status data_cache::rd_hit_base_l1d(
   new_addr_type block_addr = m_config.block_addr(addr);
   
   uint8_t storedhashedPC = m_tag_array->get_hashed_pc_from_tag(addr, mf); // Rajesh CS752
-  //fprintf(stdout,"HIT B: time: %d, PC: %d, storedhashedPC=%d pred_entry = %d\n",time,mf->get_pc(),storedhashedPC,l1d_prediction_table[storedhashedPC]);
+  //fprintf(stdout,"HIT B: time: %d, PC: %d\n",time,mf->get_pc());
   if(l1d_prediction_table[storedhashedPC] > 0 ){ // Saturating counter stays 0 on 0
     l1d_prediction_table[storedhashedPC]--;
   }

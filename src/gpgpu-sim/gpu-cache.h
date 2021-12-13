@@ -1283,6 +1283,8 @@ class baseline_cache : public cache_t {
     m_memport = memport;
     m_miss_queue_status = status;
   }
+  
+  bool get_extra_mf_fields(mem_fetch* mf);
 
   virtual ~baseline_cache() { delete m_tag_array; }
 
@@ -1567,7 +1569,6 @@ class data_cache : public baseline_cache {
         break;  // Need to set a write miss function
     }
   }
-
   virtual enum cache_request_status access(new_addr_type addr, mem_fetch *mf,
                                            unsigned time,
                                            std::list<cache_event> &events);
