@@ -237,7 +237,13 @@ enum cache_request_status tag_array::probe(new_addr_type addr, unsigned &idx,
   mem_access_sector_mask_t mask = mf->get_access_sector_mask();
   return probe(addr, idx, mask, probe_mode, mf);
 }
-
+enum cache_request_status tag_array::probe(new_addr_type addr, unsigned &idx,
+                                           mem_fetch *mf, bool &victim_valid,
+                                           bool probe_mode ) const {
+  mem_access_sector_mask_t mask = mf->get_access_sector_mask();
+  return probe(addr, idx, mask, victim_valid, probe_mode,  mf);
+}
+//Probe
 enum cache_request_status tag_array::probe(new_addr_type addr, unsigned &idx,
                                            mem_access_sector_mask_t mask,
                                            bool probe_mode,
@@ -251,6 +257,7 @@ enum cache_request_status tag_array::probe(new_addr_type addr, unsigned &idx,
   unsigned long long valid_timestamp = (unsigned)-1;
 
   bool all_reserved = true;
+  bool victim_valid = false;
 
   // check for hit or pending hit
   for (unsigned way = 0; way < m_config.m_assoc; way++) {
@@ -278,7 +285,7 @@ enum cache_request_status tag_array::probe(new_addr_type addr, unsigned &idx,
       } else {
         assert(line->get_status(mask) == INVALID);
       }
-    }
+    }///
     if (!line->is_reserved_line()) {
       all_reserved = false;
       if (line->is_invalid_line()) {
@@ -299,6 +306,7 @@ enum cache_request_status tag_array::probe(new_addr_type addr, unsigned &idx,
       }
     }
   }
+
   if (all_reserved) {
     assert(m_config.m_alloc_policy == ON_MISS);
     return RESERVATION_FAIL;  // miss and not enough space in cache to allocate
@@ -306,12 +314,17 @@ enum cache_request_status tag_array::probe(new_addr_type addr, unsigned &idx,
   }
 
   if (invalid_line != (unsigned)-1) {
+        fprintf(stdout,"INVALID LINE\n");
     idx = invalid_line;
+    victim_valid = false;
   } else if (valid_line != (unsigned)-1) {
+            fprintf(stdout,"VALID LINE\n");
     idx = valid_line;
+    victim_valid = true;
   } else
     abort();  // if an unreserved block exists, it is either invalid or
               // replaceable
+ // fprintf(stdout,"AISH, %s, %d\n",__func__, __LINE__);
 
   if (probe_mode && m_config.is_streaming()) {
     line_table::const_iterator i =
@@ -323,7 +336,103 @@ enum cache_request_status tag_array::probe(new_addr_type addr, unsigned &idx,
   }
 
   return MISS;
-}
+}//Probe
+
+//New Probe
+enum cache_request_status tag_array::probe(new_addr_type addr, unsigned &idx,
+                                           mem_access_sector_mask_t mask,
+                                           bool &victim_valid,
+                                           bool probe_mode,
+                                           mem_fetch *mf) const {
+  // assert( m_config.m_write_policy == READ_ONLY );
+  unsigned set_index = m_config.set_index(addr);
+  new_addr_type tag = m_config.tag(addr);
+
+  unsigned invalid_line = (unsigned)-1;
+  unsigned valid_line = (unsigned)-1;
+  unsigned long long valid_timestamp = (unsigned)-1;
+
+  bool all_reserved = true;
+  victim_valid = false;
+
+  // check for hit or pending hit
+  for (unsigned way = 0; way < m_config.m_assoc; way++) {
+    unsigned index = set_index * m_config.m_assoc + way;
+    cache_block_t *line = m_lines[index];
+    if (line->m_tag == tag) {
+      if (line->get_status(mask) == RESERVED) {
+        idx = index;
+        return HIT_RESERVED;
+      } else if (line->get_status(mask) == VALID) {
+        idx = index;
+        return HIT;
+      } else if (line->get_status(mask) == MODIFIED) {
+        if (line->is_readable(mask)) {
+          idx = index;
+          return HIT;
+        } else {
+          idx = index;
+          return SECTOR_MISS;
+        }
+
+      } else if (line->is_valid_line() && line->get_status(mask) == INVALID) {
+        idx = index;
+        return SECTOR_MISS;
+      } else {
+        assert(line->get_status(mask) == INVALID);
+      }
+    }///
+    if (!line->is_reserved_line()) {
+      all_reserved = false;
+      if (line->is_invalid_line()) {
+        invalid_line = index;
+      } else {
+        // valid line : keep track of most appropriate replacement candidate
+        if (m_config.m_replacement_policy == LRU) {
+          if (line->get_last_access_time() < valid_timestamp) {
+            valid_timestamp = line->get_last_access_time();
+            valid_line = index;
+          }
+        } else if (m_config.m_replacement_policy == FIFO) {
+          if (line->get_alloc_time() < valid_timestamp) {
+            valid_timestamp = line->get_alloc_time();
+            valid_line = index;
+          }
+        }
+      }
+    }
+  }
+
+  if (all_reserved) {
+    assert(m_config.m_alloc_policy == ON_MISS);
+    return RESERVATION_FAIL;  // miss and not enough space in cache to allocate
+                              // on miss
+  }
+
+  if (invalid_line != (unsigned)-1) {
+        fprintf(stdout,"INVALID LINE\n");
+    idx = invalid_line;
+    victim_valid = false;
+  } else if (valid_line != (unsigned)-1) {
+            fprintf(stdout,"VALID LINE\n");
+    idx = valid_line;
+    victim_valid = true;
+  } else
+    abort();  // if an unreserved block exists, it is either invalid or
+              // replaceable
+ // fprintf(stdout,"AISH, %s, %d\n",__func__, __LINE__);
+
+  if (probe_mode && m_config.is_streaming()) {
+    line_table::const_iterator i =
+        pending_lines.find(m_config.block_addr(addr));
+    assert(mf);
+    if (!mf->is_write() && i != pending_lines.end()) {
+      if (i->second != mf->get_inst().get_uid()) return SECTOR_MISS;
+    }
+  }
+
+  return MISS;
+} //New_probe
 
 uint8_t tag_array::get_hashed_pc_from_tag(new_addr_type addr, mem_fetch *mf){
   unsigned set_index = m_config.set_index(addr);
@@ -1822,7 +1931,6 @@ enum cache_request_status data_cache::rd_miss_base(
     m_stats.inc_fail_stats(mf->get_access_type(), MISS_QUEUE_FULL);
     return RESERVATION_FAIL;
   }
-
   new_addr_type block_addr = m_config.block_addr(addr);
   bool do_miss = false;
   bool wb = false;
@@ -1852,9 +1960,10 @@ enum cache_request_status data_cache::rd_miss_base(
 
 /// Baseline read miss: Send read request to lower level memory,
 // perform write-back as necessary
+
 enum cache_request_status data_cache::rd_miss_base_l1d(
     new_addr_type addr, unsigned cache_index, mem_fetch *mf, unsigned time,
-    std::list<cache_event> &events, enum cache_request_status status, uint8_t *l1d_prediction_table) {
+    std::list<cache_event> &events, enum cache_request_status status, uint8_t *l1d_prediction_table, bool &victim_valid) {
   // fprintf(stdout,"L1 Misses are coming here\n"); Verified
   if (miss_queue_full(1)) {
     // cannot handle request this cycle
@@ -1869,19 +1978,23 @@ enum cache_request_status data_cache::rd_miss_base_l1d(
     isBypassed = true;
   }
   fprintf(stdout,"Current prediction to be sent to L2: %d PC:%d \n",isBypassed, mf->get_pc());
+if(l1d_prediction_table[m_tag_array->get_hashed_pc_from_tag(addr,mf)] < 15 && victim_valid) //&& m_tag_array->get_hashed_pc_from_tag(addr)->is_valid_line()) // AISH Saturating counter stays at 15
+   {
+
+    l1d_prediction_table[m_tag_array->get_hashed_pc_from_tag(addr,mf)]++ ;// Rajesh CS752 Victim Hashed PC
+  }//if(l1d_prediction_table[(uint8_t) mf->get_pc()] < 15) // && m_lines[cache_index]->is_valid_line()) // Saturating counter stays at 15
+  //  l1d_prediction_table[(uint8_t) mf->get_pc()]++ ;// Rajesh CS752 Victim Hashed PC
+  //if(l1d_prediction_table[(uint8_t) m_tag_array->get_hashed_pc_from_tag(evicted.m_block_addr,0)] < 15) // && m_lines[idx]->is_valid_line()) // Saturating counter stays at 15
+  //  l1d_prediction_table[(uint8_t) m_tag_array->get_hashed_pc_from_tag(evicted.m_block_addr,0)]++;
+  fprintf(stdout,"MISS D Time: %d PC: %d Value: %d\n", time, mf->get_pc(), l1d_prediction_table[(uint8_t) mf->get_pc()]);
 
   new_addr_type block_addr = m_config.block_addr(addr);
   bool do_miss = false;
   bool wb = false;
   evicted_block_info evicted;
   send_read_request(addr, block_addr, cache_index, mf, time, do_miss, wb,
-                    evicted, events, false, false, isBypassed);
-
-  if(l1d_prediction_table[(uint8_t) mf->get_pc()] < 15) // && m_lines[cache_index]->is_valid_line()) // Saturating counter stays at 15
-    l1d_prediction_table[(uint8_t) mf->get_pc()]++ ;// Rajesh CS752 Victim Hashed PC
-  //if(l1d_prediction_table[(uint8_t) m_tag_array->get_hashed_pc_from_tag(evicted.m_block_addr,0)] < 15) // && m_lines[idx]->is_valid_line()) // Saturating counter stays at 15
-  //  l1d_prediction_table[(uint8_t) m_tag_array->get_hashed_pc_from_tag(evicted.m_block_addr,0)]++;
-  fprintf(stdout,"MISS D Time: %d PC: %d Value: %d\n", time, mf->get_pc(), l1d_prediction_table[(uint8_t) mf->get_pc()]);
+                    evicted, events, false, false, isBypassed);//From MSHR
+                    
 
   if (do_miss) {
     // If evicted block is modified and not a write-through
@@ -1899,7 +2012,7 @@ enum cache_request_status data_cache::rd_miss_base_l1d(
     return MISS;
   }
   return RESERVATION_FAIL;
-}
+}//New
 
 /// Access cache for read_only_cache: returns RESERVATION_FAIL if
 // request could not be accepted (for any reason)
@@ -1973,6 +2086,7 @@ enum cache_request_status data_cache::process_tag_probe(
       access_status =
           (this->*m_rd_hit)(addr, cache_index, mf, time, events, probe_status);
     } else if (probe_status != RESERVATION_FAIL) {
+      fprintf(stdout,"probe_status != RESERVATION_FAIL\n");
       access_status =
           (this->*m_rd_miss)(addr, cache_index, mf, time, events, probe_status);
     } else {
@@ -1985,10 +2099,12 @@ enum cache_request_status data_cache::process_tag_probe(
   m_bandwidth_management.use_data_port(mf, access_status, events);
   return access_status;
 }
+
+
 enum cache_request_status data_cache::process_tag_probe(
     bool wr, enum cache_request_status probe_status, new_addr_type addr,
     unsigned cache_index, mem_fetch *mf, unsigned time,
-    std::list<cache_event> &events, uint8_t *l1d_prediction_table) {
+    std::list<cache_event> &events, uint8_t *l1d_prediction_table, bool &victim_valid) {
   // Each function pointer ( m_[rd/wr]_[hit/miss] ) is set in the
   // data_cache constructor to reflect the corresponding cache configuration
   // options. Function pointers were used to avoid many long conditional
@@ -2014,7 +2130,7 @@ enum cache_request_status data_cache::process_tag_probe(
           (this->*m_rd_hit_l1d)(addr, cache_index, mf, time, events, probe_status, l1d_prediction_table);
     } else if (probe_status != RESERVATION_FAIL) {
       access_status =
-          (this->*m_rd_miss_l1d)(addr, cache_index, mf, time, events, probe_status, l1d_prediction_table);
+          (this->*m_rd_miss_l1d)(addr, cache_index, mf, time, events, probe_status, l1d_prediction_table, victim_valid);
     } else {
       // the only reason for reservation fail here is LINE_ALLOC_FAIL (i.e all
       // lines are reserved)
@@ -2024,7 +2140,7 @@ enum cache_request_status data_cache::process_tag_probe(
 
   m_bandwidth_management.use_data_port(mf, access_status, events);
   return access_status;
-}
+}//New
 
 enum cache_request_status data_cache::process_tag_probe(
     bool wr, enum cache_request_status probe_status, new_addr_type addr,
@@ -2034,6 +2150,7 @@ enum cache_request_status data_cache::process_tag_probe(
   // data_cache constructor to reflect the corresponding cache configuration
   // options. Function pointers were used to avoid many long conditional
   // branches resulting from many cache configuration options.
+
   cache_request_status access_status = probe_status;
   if (wr) {  // Write
     if (probe_status == HIT) {
@@ -2094,13 +2211,14 @@ enum cache_request_status data_cache::access(new_addr_type addr, mem_fetch *mf,
                                              unsigned time,
                                              std::list<cache_event> &events, uint8_t *l1d_prediction_table) {
   assert(mf->get_data_size() <= m_config.get_atom_sz());
+   bool victim_valid=false;
   bool wr = mf->get_is_write();
   new_addr_type block_addr = m_config.block_addr(addr);
   unsigned cache_index = (unsigned)-1;
   enum cache_request_status probe_status =
-      m_tag_array->probe(block_addr, cache_index, mf, true);
+      m_tag_array->probe(block_addr, cache_index, mf,  victim_valid, true);
   enum cache_request_status access_status =
-      process_tag_probe(wr, probe_status, addr, cache_index, mf, time, events, l1d_prediction_table); // Rajesh CS752 This will update LRU status on reads
+      process_tag_probe(wr, probe_status, addr, cache_index, mf, time, events, l1d_prediction_table, victim_valid); // Rajesh CS752 This will update LRU status on reads
   m_stats.inc_stats(mf->get_access_type(),
                     m_stats.select_stats_status(probe_status, access_status));
   m_stats.inc_stats_pw(mf->get_access_type(), m_stats.select_stats_status(

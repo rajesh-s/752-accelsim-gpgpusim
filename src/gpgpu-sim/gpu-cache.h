@@ -939,11 +939,19 @@ class tag_array {
   // Use this constructor
   tag_array(cache_config &config, int core_id, int type_id);
   ~tag_array();
-
-  enum cache_request_status probe(new_addr_type addr, unsigned &idx,
+enum cache_request_status probe(new_addr_type addr, unsigned &idx,
                                   mem_fetch *mf, bool probe_mode = false) const;
   enum cache_request_status probe(new_addr_type addr, unsigned &idx,
+                                  mem_fetch *mf, bool &victim_valid, bool probe_mode = false) const;
+ 
+  enum cache_request_status probe(new_addr_type addr, unsigned &idx,
                                   mem_access_sector_mask_t mask,
+                                 
+                                  bool probe_mode = false,
+                                  mem_fetch *mf = NULL) const;
+  enum cache_request_status probe(new_addr_type addr, unsigned &idx,
+                                  mem_access_sector_mask_t mask,
+                                  bool &victim_valid,
                                   bool probe_mode = false,
                                   mem_fetch *mf = NULL) const;
   enum cache_request_status access(new_addr_type addr, unsigned time,
@@ -1619,6 +1627,16 @@ class data_cache : public baseline_cache {
                                               std::list<cache_event> &events,
                                               uint8_t *l1d_prediction_table);
 
+enum cache_request_status process_tag_probe(bool wr,
+                                              enum cache_request_status status,
+                                              new_addr_type addr,
+                                              unsigned cache_index,
+                                              mem_fetch *mf, unsigned time,
+                                              std::list<cache_event> &events,
+                                              uint8_t *l1d_prediction_table,
+                                              bool &victim_valid);
+                                              
+
   enum cache_request_status process_tag_probe(bool wr,
                                               enum cache_request_status status,
                                               new_addr_type addr,
@@ -1726,18 +1744,21 @@ class data_cache : public baseline_cache {
       std::list<cache_event> &events, enum cache_request_status status);
   enum cache_request_status (data_cache::*m_rd_miss_l1d)(
       new_addr_type addr, unsigned cache_index, mem_fetch *mf, unsigned time,
-      std::list<cache_event> &events, enum cache_request_status status, uint8_t *l1d_prediction_table);
+      std::list<cache_event> &events, enum cache_request_status status, uint8_t *l1d_prediction_table, bool &victim_valid);
+      
   enum cache_request_status rd_miss_base(new_addr_type addr,
                                          unsigned cache_index, mem_fetch *mf,
                                          unsigned time,
                                          std::list<cache_event> &events,
                                          enum cache_request_status status);
+   
     enum cache_request_status rd_miss_base_l1d(new_addr_type addr,
                                          unsigned cache_index, mem_fetch *mf,
                                          unsigned time,
                                          std::list<cache_event> &events,
                                          enum cache_request_status status,
-                                        uint8_t *l1d_prediction_table);
+                                        uint8_t *l1d_prediction_table,
+                                        bool &victim_valid);
 };
 
 /// This is meant to model the first level data cache in Fermi.
