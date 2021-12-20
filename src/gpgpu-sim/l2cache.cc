@@ -526,12 +526,21 @@ void memory_sub_partition::cache_cycle(unsigned cycle) {
               m_request_tracker.erase(mf);
               delete mf;
             } else {
+              bool isBypassed = false;
+              if(mf->get_sentfroml1() == 777){
+                isBypassed = mf->get_isBypassed(); // This will be used to later update L2
+                //752fprintf(stdout,"The prediction stored to L2: %d Addr:%u \n",isBypassed, mf->get_addr());
+                bool bypassBit = m_L2cache->get_bypass_bit_from_l2(mf->get_addr(), mf); // Read existing bypass bit from L2
+                //752fprintf(stdout,"The prediction retrieved from L2: %d Addr:%u \n",bypassBit, mf->get_addr());
+                mf->set_isBypassed(bypassBit); // Sending old bypassBit back to L1
+              }
               mf->set_reply();
               mf->set_status(IN_PARTITION_L2_TO_ICNT_QUEUE,
                              m_gpu->gpu_sim_cycle + m_gpu->gpu_tot_sim_cycle);
               m_L2_icnt_queue->push(mf); // Pushing read payload from L2 to interconnect
-              // Rajesh CS752 set bypass bit in l2 to false after sending it
-              m_L2cache->set_bypass_bit_to_false_after_read(mf->get_addr(), mf, false);
+              if(mf->get_sentfroml1() == 777){
+                m_L2cache->set_bypass_bit_from_l2(mf->get_addr(), mf, isBypassed);
+              }
             }
             m_icnt_L2_queue->pop();
           } else {
@@ -747,7 +756,7 @@ memory_sub_partition::breakdown_request_to_sector_requests(mem_fetch *mf) {
           std::bitset<SECTOR_CHUNCK_SIZE>().set(j), m_gpu->gpgpu_ctx);
 
       mem_fetch *n_mf =
-          new mem_fetch(*ma, NULL, mf->get_ctrl_size(), mf->get_wid(),
+          new mem_fetch(mf->get_isBypassed(), mf->get_sentfroml1(), *ma, NULL, mf->get_ctrl_size(), mf->get_wid(),
                         mf->get_sid(), mf->get_tpc(), mf->get_mem_config(),
                         m_gpu->gpu_tot_sim_cycle + m_gpu->gpu_sim_cycle, mf);
 

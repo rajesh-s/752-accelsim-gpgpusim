@@ -57,6 +57,11 @@ class mem_fetch {
             unsigned ctrl_size, unsigned wid, unsigned sid, unsigned tpc,
             const memory_config *config, unsigned long long cycle,
             mem_fetch *original_mf = NULL, mem_fetch *original_wr_mf = NULL);
+
+  mem_fetch(bool isBypassed, unsigned sentfroml1, const mem_access_t &access, const warp_inst_t *inst,
+            unsigned ctrl_size, unsigned wid, unsigned sid, unsigned tpc,
+            const memory_config *config, unsigned long long cycle,
+            mem_fetch *original_mf = NULL, mem_fetch *original_wr_mf = NULL);
   ~mem_fetch();
 
   void set_status(enum mem_fetch_status status, unsigned long long cycle);
@@ -71,6 +76,7 @@ class mem_fetch {
       m_type = WRITE_ACK;
     }
   }
+
   void do_atomic();
 
   void print(FILE *fp, bool print_inst = true) const;
@@ -82,6 +88,13 @@ class mem_fetch {
   }
   unsigned get_data_size() const { return m_data_size; }
   void set_data_size(unsigned size) { m_data_size = size; }
+
+  bool get_isBypassed() { return m_isBypassed; }
+  void set_isBypassed(bool isBypassed) { m_isBypassed = isBypassed; }
+
+  unsigned get_sentfroml1() { return m_sentfroml1; }
+  void set_sentfroml1(unsigned sentfroml1) { m_sentfroml1 = sentfroml1; }
+
   unsigned get_ctrl_size() const { return m_ctrl_size; }
   unsigned size() const { return m_data_size + m_ctrl_size; }
   bool is_write() { return m_access.is_write(); }
@@ -142,6 +155,10 @@ class mem_fetch {
   // request type, address, size, mask
   mem_access_t m_access;
   unsigned m_data_size;  // how much data is being written
+
+  bool m_isBypassed; // sent from L1 to L2
+  unsigned m_sentfroml1; // Use a unique integer to ensure that the message was initiated by L1
+
   unsigned
       m_ctrl_size;  // how big would all this meta data be in hardware (does not
                     // necessarily match actual size of mem_fetch)

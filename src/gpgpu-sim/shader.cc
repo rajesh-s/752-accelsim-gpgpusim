@@ -1937,13 +1937,6 @@ void ldst_unit::L1_latency_queue_cycle() {
       bool read_sent = was_read_sent(events);
 
       if (status == HIT) {
-        
-      // Do this in tag_array::access instead
-      // uint8_t previousPC = m_L1D->get_hashed_pc(mf_next->get_addr(), mf_next); // Rajesh CS752. try different hash functions
-      // if(l1d_prediction_table[previousPC] > 0 ){ // Saturating counter stays 0 on 0
-      //  l1d_prediction_table[previousPC]--;
-      //}
-      //m_L1D->set_hashed_pc(mf_next->get_addr(), mf_next, (uint8_t) mf_next->get_pc());
 
         assert(!read_sent);
         l1_latency_queue[j][0] = NULL;
@@ -2387,6 +2380,7 @@ ldst_unit::ldst_unit(mem_fetch_interface *icnt,
     m_L1D = new l1_cache(L1D_name, m_config->m_L1D_config, m_sid,
                          get_shader_normal_cache_id(), m_icnt, m_mf_allocator,
                          IN_L1D_MISS_QUEUE, core->get_gpu());
+    fprintf(stdout, "Initialize L1D\n");
     for (int i=0; i<256; i++){ // Initialize prediction table
       m_L1D->l1d_prediction_table[i] = 4;
     }
@@ -2609,11 +2603,12 @@ void ldst_unit::cycle() { // Rajesh CS752 Assume it happens every cycle
                        GLOBAL_ACC_W) {  // global memory access
           if (m_core->get_config()->gmem_skip_L1D) bypassL1D = true;
           if (mf->get_access_type() == GLOBAL_ACC_R){ // This happens only on MISS since we are fetching a line from lower memory )
+            // This comparison will come from L2
             bool L1bypassbit = false; bool L2bypassbit = false;
             if (m_L1D->l1d_prediction_table[(uint8_t) mf->get_original_mf()->get_pc()] >= 8) L1bypassbit = true; // Rajesh CS752  threshold computation
-            L2bypassbit = m_L1D->get_extra_mf_fields(mf->get_original_mf());
+              L2bypassbit = mf->get_original_mf()->get_isBypassed();
             if(L1bypassbit && !L2bypassbit) bypassL1D = true;
-            fprintf(stdout,"PC:%d L2bypassbit:%d L1bypassbit:%d\n",mf->get_original_mf()->get_pc(),L2bypassbit,L1bypassbit);  // Rajesh CS752 verification using L2 value before bypass
+            //fprintf(stdout,"PC:%d L2bypassbit:%d L1bypassbit:%d\n",mf->get_original_mf()->get_pc(),L2bypassbit,L1bypassbit);  // Rajesh CS752 verification using L2 value before bypass
           }
         }
 

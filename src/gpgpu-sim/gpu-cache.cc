@@ -257,7 +257,6 @@ enum cache_request_status tag_array::probe(new_addr_type addr, unsigned &idx,
   unsigned long long valid_timestamp = (unsigned)-1;
 
   bool all_reserved = true;
-  bool victim_valid = false;
 
   // check for hit or pending hit
   for (unsigned way = 0; way < m_config.m_assoc; way++) {
@@ -314,17 +313,12 @@ enum cache_request_status tag_array::probe(new_addr_type addr, unsigned &idx,
   }
 
   if (invalid_line != (unsigned)-1) {
-        fprintf(stdout,"INVALID LINE\n");
     idx = invalid_line;
-    victim_valid = false;
   } else if (valid_line != (unsigned)-1) {
-            fprintf(stdout,"VALID LINE\n");
     idx = valid_line;
-    victim_valid = true;
   } else
     abort();  // if an unreserved block exists, it is either invalid or
               // replaceable
- // fprintf(stdout,"AISH, %s, %d\n",__func__, __LINE__);
 
   if (probe_mode && m_config.is_streaming()) {
     line_table::const_iterator i =
@@ -410,11 +404,11 @@ enum cache_request_status tag_array::probe(new_addr_type addr, unsigned &idx,
   }
 
   if (invalid_line != (unsigned)-1) {
-        fprintf(stdout,"INVALID LINE\n");
+        //752fprintf(stdout,"INVALID LINE\n");
     idx = invalid_line;
     victim_valid = false;
   } else if (valid_line != (unsigned)-1) {
-            fprintf(stdout,"VALID LINE\n");
+            //752fprintf(stdout,"VALID LINE\n");
     idx = valid_line;
     victim_valid = true;
   } else
@@ -462,7 +456,7 @@ void tag_array::set_hashed_pc_from_tag(new_addr_type addr, mem_fetch *mf, uint8_
   }
 }
 
-void tag_array::set_bypass_bit_to_false_after_read_from_tag(new_addr_type addr, mem_fetch *mf, bool bypassBit){
+void tag_array::set_bypass_bit_from_tag(new_addr_type addr, mem_fetch *mf, bool bypassBit){
   unsigned set_index = m_config.set_index(addr);
   new_addr_type tag = m_config.tag(addr);
 
@@ -471,7 +465,21 @@ void tag_array::set_bypass_bit_to_false_after_read_from_tag(new_addr_type addr, 
     unsigned index = set_index * m_config.m_assoc + way;
     cache_block_t *line = m_lines[index];
     if (line->m_tag == tag) {
-      line->m_bypassBit = false;
+      line->m_bypassBit = bypassBit;
+    }
+  }
+}
+
+bool tag_array::get_bypass_bit_from_tag(new_addr_type addr, mem_fetch *mf){
+  unsigned set_index = m_config.set_index(addr);
+  new_addr_type tag = m_config.tag(addr);
+
+  // check for line in cache and update on HIT access with most recent PC. Rajesh CS752
+  for (unsigned way = 0; way < m_config.m_assoc; way++) {
+    unsigned index = set_index * m_config.m_assoc + way;
+    cache_block_t *line = m_lines[index];
+    if (line->m_tag == tag) {
+      return line->m_bypassBit;
     }
   }
 }
@@ -558,7 +566,6 @@ enum cache_request_status tag_array::access(new_addr_type addr, unsigned time,
       m_pending_hit++;
     case HIT:
       m_lines[idx]->set_last_access_time(time, mf->get_access_sector_mask());
-      m_lines[idx]->set_bypassBit(isBypassed, mf->get_access_sector_mask());
       break;
     case MISS:
       m_miss++;
@@ -633,16 +640,10 @@ void tag_array::fill(new_addr_type addr, unsigned time,
   // redundant memory request
 
   if (status == MISS){ // ON FILL if line is already present, we evict the previous
-    if(l1d_prediction_table[m_lines[idx]->m_hashed_pc] < 15 && m_lines[idx]->is_valid_line()) // Saturating counter stays at 15
-      l1d_prediction_table[m_lines[idx]->m_hashed_pc]++ ;// Rajesh CS752 Victim Hashed PC
-      fprintf(stdout,"MISS A Time: %d PC: %d Value: %d\n", time, hashed_pc, l1d_prediction_table[idx]);
     m_lines[idx]->allocate(m_config.tag(addr), m_config.block_addr(addr), time,
                            mask, hashed_pc); // rajesh cs752
   } else if (status == SECTOR_MISS) {
     assert(m_config.m_cache_type == SECTOR);
-    if(l1d_prediction_table[m_lines[idx]->m_hashed_pc] < 15 && m_lines[idx]->is_valid_line()) // Saturating counter stays at 15
-      l1d_prediction_table[m_lines[idx]->m_hashed_pc]++ ;// Rajesh CS752 Victim Hashed PC
-      fprintf(stdout,"MISS B Time: %d PC: %d Value: %d\n", time, hashed_pc, l1d_prediction_table[idx]);
     ((sector_cache_block *)m_lines[idx])->allocate_sector(time, mask, hashed_pc);
   }
 
@@ -656,11 +657,7 @@ void tag_array::fill(unsigned index, unsigned time, mem_fetch *mf) {
 
 void tag_array::fill(unsigned index, unsigned time, mem_fetch *mf, uint8_t *l1d_prediction_table, uint8_t hashed_pc) {
   assert(m_config.m_alloc_policy == ON_MISS);
-  if(l1d_prediction_table[m_lines[index]->m_hashed_pc] < 15 && m_lines[index]->is_valid_line()){ // Saturating counter stays at 15
-    l1d_prediction_table[m_lines[index]->m_hashed_pc]++ ;// Rajesh CS752 Victim Hashed PC
-    fprintf(stdout,"MISS C Time: %d PC: %d Value: %d\n", time, hashed_pc, l1d_prediction_table[index]);
-  }
-  m_lines[index]->fill(time, mf->get_access_sector_mask(), hashed_pc); // rajesh cs752
+  m_lines[index]->fill(time, mf->get_access_sector_mask(), hashed_pc);
 }
 
 // TODO: we need write back the flushed data to the upper level
@@ -1487,10 +1484,15 @@ void baseline_cache::send_read_request(new_addr_type addr,
     if (m_config.is_streaming() && m_config.m_cache_type == SECTOR) {
       m_tag_array->add_pending_line(mf);
     }
+    fprintf(stdout,"Time: %d The prediction sent from L1: %d Addr:%u \n",time, isBypassed, mf->get_addr());
     m_extra_mf_fields[mf] = extra_mf_fields(
-        mshr_addr, mf->get_addr(), cache_index, mf->get_data_size(), m_config, isBypassed); // Rajesh CS752
+        mshr_addr, mf->get_addr(), cache_index, mf->get_data_size(), m_config);
     mf->set_data_size(m_config.get_atom_sz());
     mf->set_addr(mshr_addr);
+    
+    mf->set_sentfroml1(777);
+    mf->set_isBypassed(isBypassed);
+    // 752fprintf(stdout,"Addr: %u Tried to set 777 and %d. result = %d bypassresult = %d",mf->get_addr(),isBypassed,mf->get_sentfroml1(),mf->get_isBypassed());
     m_miss_queue.push_back(mf);
     mf->set_status(m_miss_queue_status, time);
     if (!wa) events.push_back(cache_event(READ_REQUEST_SENT));
@@ -1504,11 +1506,6 @@ void baseline_cache::send_read_request(new_addr_type addr,
     assert(0);
 }
 
-bool baseline_cache::get_extra_mf_fields(mem_fetch *mf) {
-     extra_mf_fields_lookup::iterator e= m_extra_mf_fields.find(mf);
-     bool L2bypassbit= e->second.m_isBypassed;
-     return L2bypassbit;
-}
 /// Sends write request to lower level memory (write or writeback)
 void data_cache::send_write_request(mem_fetch *mf, cache_event request,
                                     unsigned time,
@@ -1886,7 +1883,7 @@ enum cache_request_status data_cache::rd_hit_base_l1d(
   uint8_t storedhashedPC = m_tag_array->get_hashed_pc_from_tag(addr, mf); // Rajesh CS752
   if(l1d_prediction_table[storedhashedPC] > 0 ){ // Saturating counter stays 0 on 0
     l1d_prediction_table[storedhashedPC]--;
-    fprintf(stdout,"HIT Time: %d PC: %d Value: %d\n", time, mf->get_pc(), l1d_prediction_table[storedhashedPC]);
+    fprintf(stdout,"HIT Time: %d PC: %d Value: %d\n", time, storedhashedPC, l1d_prediction_table[storedhashedPC]);
   }
   m_tag_array->set_hashed_pc_from_tag(addr, mf, (uint8_t) mf->get_pc()); // ASSGINMENT ON ACCESS
 
@@ -1977,16 +1974,15 @@ enum cache_request_status data_cache::rd_miss_base_l1d(
   if(l1d_prediction_table[(uint8_t) mf->get_pc()] >= threshold){
     isBypassed = true;
   }
-  fprintf(stdout,"Current prediction to be sent to L2: %d PC:%d \n",isBypassed, mf->get_pc());
-if(l1d_prediction_table[m_tag_array->get_hashed_pc_from_tag(addr,mf)] < 15 && victim_valid) //&& m_tag_array->get_hashed_pc_from_tag(addr)->is_valid_line()) // AISH Saturating counter stays at 15
-   {
 
+  // 752fprintf(stdout,"VictimValid? rd_miss_l1d Time: %d PC: %d Value: %d, Victim Valid: %d\n", time, m_tag_array->get_hashed_pc_from_tag(addr,mf), l1d_prediction_table[m_tag_array->get_hashed_pc_from_tag(addr,mf)], victim_valid);
+  //752fprintf(stdout,"Current prediction to be sent to L2: %d PC:%d \n",isBypassed, mf->get_pc());
+if(l1d_prediction_table[m_tag_array->get_hashed_pc_from_tag(addr,mf)] < 15 && victim_valid && isBypassed==false) //&& m_tag_array->get_hashed_pc_from_tag(addr)->is_valid_line()) // AISH Saturating counter stays at 15
+   {
     l1d_prediction_table[m_tag_array->get_hashed_pc_from_tag(addr,mf)]++ ;// Rajesh CS752 Victim Hashed PC
-  }//if(l1d_prediction_table[(uint8_t) mf->get_pc()] < 15) // && m_lines[cache_index]->is_valid_line()) // Saturating counter stays at 15
-  //  l1d_prediction_table[(uint8_t) mf->get_pc()]++ ;// Rajesh CS752 Victim Hashed PC
-  //if(l1d_prediction_table[(uint8_t) m_tag_array->get_hashed_pc_from_tag(evicted.m_block_addr,0)] < 15) // && m_lines[idx]->is_valid_line()) // Saturating counter stays at 15
-  //  l1d_prediction_table[(uint8_t) m_tag_array->get_hashed_pc_from_tag(evicted.m_block_addr,0)]++;
-  fprintf(stdout,"MISS D Time: %d PC: %d Value: %d\n", time, mf->get_pc(), l1d_prediction_table[(uint8_t) mf->get_pc()]);
+    fprintf(stdout,"MISS rd_miss_l1d Time: %d PC: %d Value: %d\n", time, m_tag_array->get_hashed_pc_from_tag(addr,mf), l1d_prediction_table[m_tag_array->get_hashed_pc_from_tag(addr,mf)]);
+  }
+  
 
   new_addr_type block_addr = m_config.block_addr(addr);
   bool do_miss = false;
@@ -2086,7 +2082,7 @@ enum cache_request_status data_cache::process_tag_probe(
       access_status =
           (this->*m_rd_hit)(addr, cache_index, mf, time, events, probe_status);
     } else if (probe_status != RESERVATION_FAIL) {
-      fprintf(stdout,"probe_status != RESERVATION_FAIL\n");
+      // 752fprintf(stdout,"probe_status != RESERVATION_FAIL\n");
       access_status =
           (this->*m_rd_miss)(addr, cache_index, mf, time, events, probe_status);
     } else {
@@ -2273,14 +2269,16 @@ enum cache_request_status l1_cache::access(new_addr_type addr, mem_fetch *mf, //
 enum cache_request_status l2_cache::access(new_addr_type addr, mem_fetch *mf,
                                            unsigned time,
                                            std::list<cache_event> &events) {
-  //mf->get_extra..
-  extra_mf_fields_lookup::iterator e = m_extra_mf_fields.find(mf->get_original_mf());
-  fprintf(stdout,"The prediction stored to L2: %d PC:%d \n",e->second.m_isBypassed, mf->get_pc());
-  return data_cache::access(addr, mf, time, events, e->second.m_isBypassed);
+  //return data_cache::access(addr, mf, time, events, e->second.m_isBypassed);
+  return data_cache::access(addr, mf, time, events);
 }
 
-void l2_cache::set_bypass_bit_to_false_after_read (new_addr_type addr, mem_fetch *mf, bool bypassBit){
-  m_tag_array->set_bypass_bit_to_false_after_read_from_tag (addr,mf,bypassBit);
+void l2_cache::set_bypass_bit_from_l2 (new_addr_type addr, mem_fetch *mf, bool bypassBit){
+  m_tag_array->set_bypass_bit_from_tag (addr,mf,bypassBit);
+}
+
+bool l2_cache::get_bypass_bit_from_l2 (new_addr_type addr, mem_fetch *mf){
+  return m_tag_array->get_bypass_bit_from_tag(addr,mf);
 }
 
 /// Access function for tex_cache
