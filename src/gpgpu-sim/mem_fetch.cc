@@ -38,7 +38,7 @@ mem_fetch::mem_fetch(const mem_access_t &access, const warp_inst_t *inst,
                      unsigned ctrl_size, unsigned wid, unsigned sid,
                      unsigned tpc, const memory_config *config,
                      unsigned long long cycle, mem_fetch *m_original_mf,
-                     mem_fetch *m_original_wr_mf)
+                     mem_fetch *m_original_wr_mf, bool bypass_in_shader)
     : m_access(access)
 
 {
@@ -71,13 +71,14 @@ mem_fetch::mem_fetch(const mem_access_t &access, const warp_inst_t *inst,
   }
   m_isBypassed = false;
   m_sentfroml1 = 0;
+  m_bypass_in_shader = bypass_in_shader;
 }
 
 mem_fetch::mem_fetch(bool isBypassed, unsigned sentfroml1, const mem_access_t &access, const warp_inst_t *inst,
                      unsigned ctrl_size, unsigned wid, unsigned sid,
                      unsigned tpc, const memory_config *config,
                      unsigned long long cycle, mem_fetch *m_original_mf,
-                     mem_fetch *m_original_wr_mf)
+                     mem_fetch *m_original_wr_mf, bool bypass_in_shader)
     : m_access(access)
 
 {
@@ -111,6 +112,7 @@ mem_fetch::mem_fetch(bool isBypassed, unsigned sentfroml1, const mem_access_t &a
 
   m_isBypassed = isBypassed;
   m_sentfroml1 = sentfroml1;
+  m_bypass_in_shader = bypass_in_shader;
 }
 
 mem_fetch::~mem_fetch() { m_status = MEM_FETCH_DELETED; }

@@ -174,9 +174,9 @@ ret;
 .reg .b32 %r<111>;
 .reg .b64 %rd<13>;
 
-	.shared .align 4 .b8 _Z22gpu_square_matrix_multPiS_S_i$__cuda_local_var_17417_33_non_const_tile_a[1024];
+	.shared .align 4 .b8 _Z22gpu_square_matrix_multPiS_S_i$__cuda_local_var_19764_33_non_const_tile_a[1024];
 
-	.shared .align 4 .b8 _Z22gpu_square_matrix_multPiS_S_i$__cuda_local_var_17418_33_non_const_tile_b[1024];
+	.shared .align 4 .b8 _Z22gpu_square_matrix_multPiS_S_i$__cuda_local_var_19765_33_non_const_tile_b[1024];
 
 ld.param.u64 %rd1, [_Z22gpu_square_matrix_multPiS_S_i_param_0];
 ld.param.u64 %rd2, [_Z22gpu_square_matrix_multPiS_S_i_param_1];
@@ -192,11 +192,11 @@ mov.u32 %r27, %tid.y;
 mov.u32 %r28, %tid.x;
 mul.lo.s32 %r3, %r23, %r23;
 shl.b32 %r29, %r27, 6;
-mov.u32 %r30, _Z22gpu_square_matrix_multPiS_S_i$__cuda_local_var_17417_33_non_const_tile_a;
+mov.u32 %r30, _Z22gpu_square_matrix_multPiS_S_i$__cuda_local_var_19764_33_non_const_tile_a;
 add.s32 %r6, %r30, %r29;
 shl.b32 %r31, %r28, 2;
 add.s32 %r4, %r6, %r31;
-mov.u32 %r32, _Z22gpu_square_matrix_multPiS_S_i$__cuda_local_var_17418_33_non_const_tile_b;
+mov.u32 %r32, _Z22gpu_square_matrix_multPiS_S_i$__cuda_local_var_19765_33_non_const_tile_b;
 add.s32 %r33, %r32, %r29;
 add.s32 %r5, %r33, %r31;
 add.s32 %r7, %r32, %r31;

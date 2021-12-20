@@ -1904,6 +1904,7 @@ enum cache_request_status data_cache::rd_hit_base_l1d(
     l1d_prediction_table[storedhashedPC]--;
     //fprintf(stdout,"HIT Time: %d PC: %d Value: %d\n", time, storedhashedPC, l1d_prediction_table[storedhashedPC]);
   }
+  //fprintf(stdout,"AISH, %s, %d\n",__func__, __LINE__);
   m_tag_array->set_hashed_pc_from_tag(addr, mf, (uint8_t) mf->get_pc()); // ASSGINMENT ON ACCESS
 
   m_tag_array->access(block_addr, time, cache_index, mf); // Update LRU status
@@ -1990,6 +1991,7 @@ enum cache_request_status data_cache::rd_miss_base_l1d(
 
   bool isBypassed = false;
   int threshold = 8; // From SDBP paper
+  //fprintf(stdout,"AISH, %s, %d\n",__func__, __LINE__);
   if(l1d_prediction_table[(uint8_t) mf->get_pc()] >= threshold){
     isBypassed = true;
   }
@@ -2213,7 +2215,7 @@ enum cache_request_status data_cache::access(new_addr_type addr, mem_fetch *mf,
   bool wr = mf->get_is_write();
   new_addr_type block_addr = m_config.block_addr(addr);
   unsigned cache_index = (unsigned)-1;
-    fprintf(stdout,"AISH, %s, %d\n",__func__, __LINE__);
+    //fprintf(stdout,"AISH, %s, %d\n",__func__, __LINE__);
 
   enum cache_request_status probe_status =
       m_tag_array->probe(block_addr, cache_index, mf, true);
@@ -2234,7 +2236,7 @@ enum cache_request_status data_cache::access(new_addr_type addr, mem_fetch *mf,
   bool wr = mf->get_is_write();
   new_addr_type block_addr = m_config.block_addr(addr);
   unsigned cache_index = (unsigned)-1;
-    fprintf(stdout,"AISH, %s, %d\n",__func__, __LINE__);
+    //fprintf(stdout,"AISH, %s, %d\n",__func__, __LINE__);
 
   enum cache_request_status probe_status =
       m_tag_array->probe(block_addr, cache_index, mf,  victim_valid, true);
@@ -2256,7 +2258,7 @@ enum cache_request_status data_cache::access(new_addr_type addr, mem_fetch *mf,
   bool wr = mf->get_is_write();
   new_addr_type block_addr = m_config.block_addr(addr);
   unsigned cache_index = (unsigned)-1;
-    fprintf(stdout,"AISH, %s, %d\n",__func__, __LINE__);
+    //fprintf(stdout,"AISH, %s, %d\n",__func__, __LINE__);
 
   enum cache_request_status probe_status =
       m_tag_array->probe(block_addr, cache_index, mf, true);

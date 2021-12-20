@@ -1943,6 +1943,15 @@ class shader_core_mem_fetch_allocator : public mem_fetch_allocator {
     return mf;
   }
 
+  mem_fetch *alloc(const warp_inst_t &inst, const mem_access_t &access,
+                   unsigned long long cycle, bool bypass_in_shader) const {
+    warp_inst_t inst_copy = inst;
+    mem_fetch *mf = new mem_fetch(
+        access, &inst_copy,
+        access.is_write() ? WRITE_PACKET_SIZE : READ_PACKET_SIZE,
+        inst.warp_id(), m_core_id, m_cluster_id, m_memory_config, cycle, NULL, NULL, bypass_in_shader);
+    return mf;
+  }
  private:
   unsigned m_core_id;
   unsigned m_cluster_id;

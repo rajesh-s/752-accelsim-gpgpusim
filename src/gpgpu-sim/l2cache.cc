@@ -758,7 +758,7 @@ memory_sub_partition::breakdown_request_to_sector_requests(mem_fetch *mf) {
       mem_fetch *n_mf =
           new mem_fetch(mf->get_isBypassed(), mf->get_sentfroml1(), *ma, NULL, mf->get_ctrl_size(), mf->get_wid(),
                         mf->get_sid(), mf->get_tpc(), mf->get_mem_config(),
-                        m_gpu->gpu_tot_sim_cycle + m_gpu->gpu_sim_cycle, mf);
+                        m_gpu->gpu_tot_sim_cycle + m_gpu->gpu_sim_cycle, mf, NULL, mf->get_bypass_in_shader());
 
       result.push_back(n_mf);
       byte_sector_mask <<= SECTOR_SIZE;

@@ -56,12 +56,13 @@ class mem_fetch {
   mem_fetch(const mem_access_t &access, const warp_inst_t *inst,
             unsigned ctrl_size, unsigned wid, unsigned sid, unsigned tpc,
             const memory_config *config, unsigned long long cycle,
-            mem_fetch *original_mf = NULL, mem_fetch *original_wr_mf = NULL);
+            mem_fetch *original_mf = NULL, mem_fetch *original_wr_mf = NULL, bool bypass_in_shader = false);
 
   mem_fetch(bool isBypassed, unsigned sentfroml1, const mem_access_t &access, const warp_inst_t *inst,
             unsigned ctrl_size, unsigned wid, unsigned sid, unsigned tpc,
             const memory_config *config, unsigned long long cycle,
-            mem_fetch *original_mf = NULL, mem_fetch *original_wr_mf = NULL);
+            mem_fetch *original_mf = NULL, mem_fetch *original_wr_mf = NULL, bool bypass_in_shader = false);
+
   ~mem_fetch();
 
   void set_status(enum mem_fetch_status status, unsigned long long cycle);
@@ -91,6 +92,9 @@ class mem_fetch {
 
   bool get_isBypassed() { return m_isBypassed; }
   void set_isBypassed(bool isBypassed) { m_isBypassed = isBypassed; }
+
+  bool get_bypass_in_shader() { return m_bypass_in_shader; }
+  void set_bypass_in_shader(bool bypass_in_shader) { m_bypass_in_shader = bypass_in_shader; }
 
   unsigned get_sentfroml1() { return m_sentfroml1; }
   void set_sentfroml1(unsigned sentfroml1) { m_sentfroml1 = sentfroml1; }
@@ -158,6 +162,8 @@ class mem_fetch {
 
   bool m_isBypassed; // sent from L1 to L2
   unsigned m_sentfroml1; // Use a unique integer to ensure that the message was initiated by L1
+
+  bool m_bypass_in_shader;
 
   unsigned
       m_ctrl_size;  // how big would all this meta data be in hardware (does not

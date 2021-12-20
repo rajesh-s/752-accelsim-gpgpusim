@@ -2048,14 +2048,15 @@ bool ldst_unit::memory_cycle(warp_inst_t &inst,
   mem_stage_stall_type stall_cond = NO_RC_FAIL;
   const mem_access_t &access = inst.accessq_back();
 
-  bool bypassL1D = false;
+  bool bypassL1D = false; bool bypass_in_shader =false;
   if (CACHE_GLOBAL == inst.cache_op || (m_L1D == NULL)) {
     bypassL1D = true;
   } else if (inst.space.is_global()) {  // global memory access
-    // skip L1 cache if the option is enabled
-    if (m_core->get_config()->gmem_skip_L1D && (CACHE_L1 != inst.cache_op))
-      bypassL1D = true;
+    // skip L1 cache  if the option is enabled
+    if (m_core->get_config()->gmem_skip_L1D && (CACHE_L1 != inst.cache_op)) bypassL1D = true; 
+    if (m_L1D->l1d_prediction_table[(uint8_t) inst.pc] >= 8 && access.get_type() == GLOBAL_ACC_R) {bypassL1D = true; bypass_in_shader = true; fprintf(stdout, "Sent new packet that was bypassed %d\n",access.get_addr());} // Rajesh CS752  threshold computation
   }
+
   if (bypassL1D) {
     // bypass L1 cache
     unsigned control_size =
@@ -2068,7 +2069,7 @@ bool ldst_unit::memory_cycle(warp_inst_t &inst,
       mem_fetch *mf =
           m_mf_allocator->alloc(inst, access,
                                 m_core->get_gpu()->gpu_sim_cycle +
-                                    m_core->get_gpu()->gpu_tot_sim_cycle);
+                                    m_core->get_gpu()->gpu_tot_sim_cycle,bypass_in_shader);
       m_icnt->push(mf);
       inst.accessq_pop_back();
       // inst.clear_active( access.get_warp_mask() );
@@ -2384,9 +2385,9 @@ ldst_unit::ldst_unit(mem_fetch_interface *icnt,
                          IN_L1D_MISS_QUEUE, core->get_gpu());
     //fprintf(stdout, "Initialize L1D\n");
     for (int i=0; i<256; i++){ // Initialize prediction table
-      m_L1D->l1d_prediction_table[i] = 0;
+      m_L1D->l1d_prediction_table[i] = 15;
     }
-
+    
     l1_latency_queue.resize(m_config->m_L1D_config.l1_banks);
     assert(m_config->m_L1D_config.l1_latency > 0);
 
@@ -2573,6 +2574,7 @@ void ldst_unit::cycle() { // Rajesh CS752 Assume it happens every cycle
 
   if (!m_response_fifo.empty()) { // Rajesh CS752 stuff put on by the interconnect
     mem_fetch *mf = m_response_fifo.front();
+    //mf->print(stdout); // Rajesh CS752 How to print mf
     if (mf->get_access_type() == TEXTURE_ACC_R) {
       if (m_L1T->fill_port_free()) {
         m_L1T->fill(mf, m_core->get_gpu()->gpu_sim_cycle +
@@ -2597,26 +2599,28 @@ void ldst_unit::cycle() { // Rajesh CS752 Assume it happens every cycle
       } else {
         assert(!mf->get_is_write());  // L1 cache is write evict, allocate line
                                       // on load miss only
-        bool bypassL1D = false;
+        bool bypassL1D = false; uint8_t temp_pc = 0;
+        address_type currPC = mf->get_pc();
+        temp_pc = (currPC == -1) ? (uint8_t) mf->get_original_mf()->get_pc() : (uint8_t) currPC;
         if (CACHE_GLOBAL == mf->get_inst().cache_op || (m_L1D == NULL)) {
           bypassL1D = true;
         } else if (mf->get_access_type() == GLOBAL_ACC_R ||
                    mf->get_access_type() ==
                        GLOBAL_ACC_W) {  // global memory access
           if (m_core->get_config()->gmem_skip_L1D) bypassL1D = true;
-          if (mf->get_access_type() == GLOBAL_ACC_R){ // This happens only on MISS since we are fetching a line from lower memory )
-            // This comparison will come from L2
-            bool L1bypassbit = false; bool L2bypassbit = false;
-            if (m_L1D->l1d_prediction_table[(uint8_t) mf->get_original_mf()->get_pc()] >= 8) {
-            //fprintf(stdout,"Threshold check!\n");  // Rajesh CS752 verification using L2 value before bypass
-                bypassL1D = true; // Rajesh CS752  threshold computation
-            }
-//Commenting out Verif 
+          //if (m_L1D->l1d_prediction_table[temp_pc] >= 8 && mf->get_access_type() == GLOBAL_ACC_R) bypassL1D = true; // Rajesh CS752  threshold computation
+          //  fprintf(stdout,"Bypassed here\n"); mf->print(stdout);
+
+          bool get_byp = (mf->get_pc() == -1) ? mf->get_original_mf()->get_bypass_in_shader() : mf->get_bypass_in_shader();
+          if(get_byp && mf->get_bypass_in_shader()==true) {bypassL1D = true;fprintf(stdout,"Received new packet that was bypassed %d\n", mf->get_addr());}
+        }
+
+        //Commenting out Verif 
             //            L2bypassbit = mf->get_original_mf()->get_isBypassed();
 //            if(L1bypassbit && !L2bypassbit) bypassL1D = true;
 //            fprintf(stdout,"PC:%d L1bypassbit:%d\n",mf->get_original_mf()->get_pc(),L2bypassbit,L1bypassbit);  // Rajesh CS752 verification using L2 value before bypass
-          }
-        }
+          
+
 
         if (bypassL1D) {
             //fprintf(stdout,"AISH Bypassed!\n");  // Rajesh CS752 verification using L2 value before bypass
@@ -2629,8 +2633,9 @@ void ldst_unit::cycle() { // Rajesh CS752 Assume it happens every cycle
           }
         } else { // Rajesh CS752 Once items are available on the response queue
           if (m_L1D->fill_port_free()) {
+            
             m_L1D->fill(mf, m_core->get_gpu()->gpu_sim_cycle +
-                                m_core->get_gpu()->gpu_tot_sim_cycle, m_L1D->l1d_prediction_table, (uint8_t) mf->get_original_mf()->get_pc()); // Rajesh CS752. This will update hashed_pc
+                                m_core->get_gpu()->gpu_tot_sim_cycle, m_L1D->l1d_prediction_table, temp_pc); // Rajesh CS752. This will update hashed_pc
             m_response_fifo.pop_front();
           }
         }

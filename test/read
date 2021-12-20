@@ -1,0 +1,2013 @@
+
+
+        *** GPGPU-Sim Simulator Version 4.2.0  [build gpgpu-sim_git-commit-18562a12256a4d9f60a9e9287e94d61569df552c_modified_5.0] ***
+
+
+GPGPU-Sim PTX: simulation mode 0 (can change with PTX_SIM_MODE_FUNC environment variable:
+               1=functional simulation only, 0=detailed performance simulator)
+GPGPU-Sim PTX: overriding embedded ptx with ptx file (PTX_SIM_USE_PTX_FILE is set)
+GPGPU-Sim: Configuration options:
+
+-save_embedded_ptx                      0 # saves ptx files embedded in binary as <n>.ptx
+-keep                                   0 # keep intermediate files created by GPGPU-Sim when interfacing with external programs
+-gpgpu_ptx_save_converted_ptxplus                    0 # Saved converted ptxplus to a file
+-gpgpu_occupancy_sm_number                   20 # The SM number to pass to ptxas when getting register usage for computing GPU occupancy. This parameter is required in the config.
+-ptx_opcode_latency_int      4,13,4,5,145,32 # Opcode latencies for integers <ADD,MAX,MUL,MAD,DIV,SHFL>Default 1,1,19,25,145,32
+-ptx_opcode_latency_fp          4,13,4,5,39 # Opcode latencies for single precision floating points <ADD,MAX,MUL,MAD,DIV>Default 1,1,1,1,30
+-ptx_opcode_latency_dp         8,19,8,8,330 # Opcode latencies for double precision floating points <ADD,MAX,MUL,MAD,DIV>Default 8,8,8,8,335
+-ptx_opcode_latency_sfu                    8 # Opcode latencies for SFU instructionsDefault 8
+-ptx_opcode_latency_tesnor                   64 # Opcode latencies for Tensor instructionsDefault 64
+-ptx_opcode_initiation_int          1,2,2,1,8,4 # Opcode initiation intervals for integers <ADD,MAX,MUL,MAD,DIV,SHFL>Default 1,1,4,4,32,4
+-ptx_opcode_initiation_fp            1,2,1,1,4 # Opcode initiation intervals for single precision floating points <ADD,MAX,MUL,MAD,DIV>Default 1,1,1,1,5
+-ptx_opcode_initiation_dp         8,16,8,8,130 # Opcode initiation intervals for double precision floating points <ADD,MAX,MUL,MAD,DIV>Default 8,8,8,8,130
+-ptx_opcode_initiation_sfu                    8 # Opcode initiation intervals for sfu instructionsDefault 8
+-ptx_opcode_initiation_tensor                   64 # Opcode initiation intervals for tensor instructionsDefault 64
+-cdp_latency         7200,8000,100,12000,1600 # CDP API latency <cudaStreamCreateWithFlags, cudaGetParameterBufferV2_init_perWarp, cudaGetParameterBufferV2_perKernel, cudaLaunchDeviceV2_init_perWarp, cudaLaunchDevicV2_perKernel>Default 7200,8000,100,12000,1600
+-network_mode                           1 # Interconnection network mode
+-inter_config_file   config_fermi_islip.icnt # Interconnection network config file
+-icnt_in_buffer_limit                   64 # in_buffer_limit
+-icnt_out_buffer_limit                   64 # out_buffer_limit
+-icnt_subnets                           2 # subnets
+-icnt_arbiter_algo                      1 # arbiter_algo
+-icnt_verbose                           0 # inct_verbose
+-icnt_grant_cycles                      1 # grant_cycles
+-gpgpu_ptx_use_cuobjdump                    1 # Use cuobjdump to extract ptx and sass from binaries
+-gpgpu_experimental_lib_support                    0 # Try to extract code from cuda libraries [Broken because of unknown cudaGetExportTable]
+-checkpoint_option                      0 #  checkpointing flag (0 = no checkpoint)
+-checkpoint_kernel                      1 #  checkpointing during execution of which kernel (1- 1st kernel)
+-checkpoint_CTA                         0 #  checkpointing after # of CTA (< less than total CTA)
+-resume_option                          0 #  resume flag (0 = no resume)
+-resume_kernel                          0 #  Resume from which kernel (1= 1st kernel)
+-resume_CTA                             0 #  resume from which CTA 
+-checkpoint_CTA_t                       0 #  resume from which CTA 
+-checkpoint_insn_Y                      0 #  resume from which CTA 
+-gpgpu_ptx_convert_to_ptxplus                    0 # Convert SASS (native ISA) to ptxplus and run ptxplus
+-gpgpu_ptx_force_max_capability                   20 # Force maximum compute capability
+-gpgpu_ptx_inst_debug_to_file                    0 # Dump executed instructions' debug information to file
+-gpgpu_ptx_inst_debug_file       inst_debug.txt # Executed instructions' debug output file
+-gpgpu_ptx_inst_debug_thread_uid                    1 # Thread UID for executed instructions' debug output
+-gpgpu_simd_model                       1 # 1 = post-dominator
+-gpgpu_shader_core_pipeline              1536:32 # shader core pipeline config, i.e., {<nthread>:<warpsize>}
+-gpgpu_tex_cache:l1  N:4:128:24,L:R:m:N:L,T:128:4,128:2 # per-shader L1 texture cache  (READ-ONLY) config  {<nsets>:<bsize>:<assoc>,<rep>:<wr>:<alloc>:<wr_alloc>,<mshr>:<N>:<merge>,<mq>:<rf>}
+-gpgpu_const_cache:l1 N:64:64:2,L:R:f:N:L,S:2:32,4 # per-shader L1 constant memory cache  (READ-ONLY) config  {<nsets>:<bsize>:<assoc>,<rep>:<wr>:<alloc>:<wr_alloc>,<mshr>:<N>:<merge>,<mq>} 
+-gpgpu_cache:il1     N:4:128:4,L:R:f:N:L,S:2:32,4 # shader L1 instruction cache config  {<nsets>:<bsize>:<assoc>,<rep>:<wr>:<alloc>:<wr_alloc>,<mshr>:<N>:<merge>,<mq>} 
+-gpgpu_cache:dl1     N:32:128:4,L:L:f:N:H,S:64:8,8 # per-shader L1 data cache config  {<nsets>:<bsize>:<assoc>,<rep>:<wr>:<alloc>:<wr_alloc>,<mshr>:<N>:<merge>,<mq> | none}
+-gpgpu_l1_banks                         1 # The number of L1 cache banks
+-gpgpu_l1_banks_byte_interleaving                   32 # l1 banks byte interleaving granularity
+-gpgpu_l1_banks_hashing_function                    0 # l1 banks hashing function
+-gpgpu_l1_latency                      35 # L1 Hit Latency
+-gpgpu_smem_latency                    26 # smem Latency
+-gpgpu_cache:dl1PrefL1                 none # per-shader L1 data cache config  {<nsets>:<bsize>:<assoc>,<rep>:<wr>:<alloc>:<wr_alloc>,<mshr>:<N>:<merge>,<mq> | none}
+-gpgpu_cache:dl1PrefShared                 none # per-shader L1 data cache config  {<nsets>:<bsize>:<assoc>,<rep>:<wr>:<alloc>:<wr_alloc>,<mshr>:<N>:<merge>,<mq> | none}
+-gpgpu_gmem_skip_L1D                    0 # global memory access skip L1D cache (implements -Xptxas -dlcm=cg, default=no skip)
+-gpgpu_perfect_mem                      0 # enable perfect memory mode (no cache miss)
+-n_regfile_gating_group                    4 # group of lanes that should be read/written together)
+-gpgpu_clock_gated_reg_file                    0 # enable clock gated reg file for power calculations
+-gpgpu_clock_gated_lanes                    0 # enable clock gated lanes for power calculations
+-gpgpu_shader_registers                32768 # Number of registers per shader core. Limits number of concurrent CTAs. (default 8192)
+-gpgpu_registers_per_block                 8192 # Maximum number of registers per CTA. (default 8192)
+-gpgpu_ignore_resources_limitation                    0 # gpgpu_ignore_resources_limitation (default 0)
+-gpgpu_shader_cta                       8 # Maximum number of concurrent CTAs in shader (default 8)
+-gpgpu_num_cta_barriers                   16 # Maximum number of named barriers per CTA (default 16)
+-gpgpu_n_clusters                      15 # number of processing clusters
+-gpgpu_n_cores_per_cluster                    1 # number of simd cores per cluster
+-gpgpu_n_cluster_ejection_buffer_size                   32 # number of packets in ejection buffer
+-gpgpu_n_ldst_response_buffer_size                    2 # number of response packets in ld/st unit ejection buffer
+-gpgpu_shmem_per_block                49152 # Size of shared memory per thread block or CTA (default 48kB)
+-gpgpu_shmem_size                   49152 # Size of shared memory per shader core (default 16kB)
+-gpgpu_adaptive_cache_config                    0 # adaptive_cache_config
+-gpgpu_shmem_sizeDefault                49152 # Size of shared memory per shader core (default 16kB)
+-gpgpu_shmem_size_PrefL1                16384 # Size of shared memory per shader core (default 16kB)
+-gpgpu_shmem_size_PrefShared                16384 # Size of shared memory per shader core (default 16kB)
+-gpgpu_shmem_num_banks                   32 # Number of banks in the shared memory in each shader core (default 16)
+-gpgpu_shmem_limited_broadcast                    0 # Limit shared memory to do one broadcast per cycle (default on)
+-gpgpu_shmem_warp_parts                    1 # Number of portions a warp is divided into for shared memory bank conflict check 
+-gpgpu_mem_unit_ports                    1 # The number of memory transactions allowed per core cycle
+-gpgpu_shmem_warp_parts                    1 # Number of portions a warp is divided into for shared memory bank conflict check 
+-gpgpu_warpdistro_shader                   -1 # Specify which shader core to collect the warp size distribution from
+-gpgpu_warp_issue_shader                    0 # Specify which shader core to collect the warp issue distribution from
+-gpgpu_local_mem_map                    1 # Mapping from local memory space address to simulated GPU physical address space (default = enabled)
+-gpgpu_num_reg_banks                   16 # Number of register banks (default = 8)
+-gpgpu_reg_bank_use_warp_id                    0 # Use warp ID in mapping registers to banks (default = off)
+-gpgpu_sub_core_model                    0 # Sub Core Volta/Pascal model (default = off)
+-gpgpu_enable_specialized_operand_collector                    1 # enable_specialized_operand_collector
+-gpgpu_operand_collector_num_units_sp                    6 # number of collector units (default = 4)
+-gpgpu_operand_collector_num_units_dp                    0 # number of collector units (default = 0)
+-gpgpu_operand_collector_num_units_sfu                    8 # number of collector units (default = 4)
+-gpgpu_operand_collector_num_units_int                    0 # number of collector units (default = 0)
+-gpgpu_operand_collector_num_units_tensor_core                    4 # number of collector units (default = 4)
+-gpgpu_operand_collector_num_units_mem                    2 # number of collector units (default = 2)
+-gpgpu_operand_collector_num_units_gen                    0 # number of collector units (default = 0)
+-gpgpu_operand_collector_num_in_ports_sp                    2 # number of collector unit in ports (default = 1)
+-gpgpu_operand_collector_num_in_ports_dp                    0 # number of collector unit in ports (default = 0)
+-gpgpu_operand_collector_num_in_ports_sfu                    1 # number of collector unit in ports (default = 1)
+-gpgpu_operand_collector_num_in_ports_int                    0 # number of collector unit in ports (default = 0)
+-gpgpu_operand_collector_num_in_ports_tensor_core                    1 # number of collector unit in ports (default = 1)
+-gpgpu_operand_collector_num_in_ports_mem                    1 # number of collector unit in ports (default = 1)
+-gpgpu_operand_collector_num_in_ports_gen                    0 # number of collector unit in ports (default = 0)
+-gpgpu_operand_collector_num_out_ports_sp                    2 # number of collector unit in ports (default = 1)
+-gpgpu_operand_collector_num_out_ports_dp                    0 # number of collector unit in ports (default = 0)
+-gpgpu_operand_collector_num_out_ports_sfu                    1 # number of collector unit in ports (default = 1)
+-gpgpu_operand_collector_num_out_ports_int                    0 # number of collector unit in ports (default = 0)
+-gpgpu_operand_collector_num_out_ports_tensor_core                    1 # number of collector unit in ports (default = 1)
+-gpgpu_operand_collector_num_out_ports_mem                    1 # number of collector unit in ports (default = 1)
+-gpgpu_operand_collector_num_out_ports_gen                    0 # number of collector unit in ports (default = 0)
+-gpgpu_coalesce_arch                   20 # Coalescing arch (GT200 = 13, Fermi = 20)
+-gpgpu_num_sched_per_core                    2 # Number of warp schedulers per core
+-gpgpu_max_insn_issue_per_warp                    1 # Max number of instructions that can be issued per warp in one cycle by scheduler (either 1 or 2)
+-gpgpu_dual_issue_diff_exec_units                    1 # should dual issue use two different execution unit resources (Default = 1)
+-gpgpu_simt_core_sim_order                    1 # Select the simulation order of cores in a cluster (0=Fix, 1=Round-Robin)
+-gpgpu_pipeline_widths 2,0,0,1,1,2,0,0,1,1,2 # Pipeline widths ID_OC_SP,ID_OC_DP,ID_OC_INT,ID_OC_SFU,ID_OC_MEM,OC_EX_SP,OC_EX_DP,OC_EX_INT,OC_EX_SFU,OC_EX_MEM,EX_WB,ID_OC_TENSOR_CORE,OC_EX_TENSOR_CORE
+-gpgpu_tensor_core_avail                    0 # Tensor Core Available (default=0)
+-gpgpu_num_sp_units                     2 # Number of SP units (default=1)
+-gpgpu_num_dp_units                     0 # Number of DP units (default=0)
+-gpgpu_num_int_units                    0 # Number of INT units (default=0)
+-gpgpu_num_sfu_units                    1 # Number of SF units (default=1)
+-gpgpu_num_tensor_core_units                    0 # Number of tensor_core units (default=1)
+-gpgpu_num_mem_units                    1 # Number if ldst units (default=1) WARNING: not hooked up to anything
+-gpgpu_scheduler                      gto # Scheduler configuration: < lrr | gto | two_level_active > If two_level_active:<num_active_warps>:<inner_prioritization>:<outer_prioritization>For complete list of prioritization values see shader.h enum scheduler_prioritization_typeDefault: gto
+-gpgpu_concurrent_kernel_sm                    0 # Support concurrent kernels on a SM (default = disabled)
+-gpgpu_perfect_inst_const_cache                    0 # perfect inst and const cache mode, so all inst and const hits in the cache(default = disabled)
+-gpgpu_inst_fetch_throughput                    1 # the number of fetched intruction per warp each cycle
+-gpgpu_reg_file_port_throughput                    1 # the number ports of the register file
+-specialized_unit_1         0,4,4,4,4,BRA # specialized unit config {<enabled>,<num_units>:<latency>:<initiation>,<ID_OC_SPEC>:<OC_EX_SPEC>,<NAME>}
+-specialized_unit_2         0,4,4,4,4,BRA # specialized unit config {<enabled>,<num_units>:<latency>:<initiation>,<ID_OC_SPEC>:<OC_EX_SPEC>,<NAME>}
+-specialized_unit_3         0,4,4,4,4,BRA # specialized unit config {<enabled>,<num_units>:<latency>:<initiation>,<ID_OC_SPEC>:<OC_EX_SPEC>,<NAME>}
+-specialized_unit_4         0,4,4,4,4,BRA # specialized unit config {<enabled>,<num_units>:<latency>:<initiation>,<ID_OC_SPEC>:<OC_EX_SPEC>,<NAME>}
+-specialized_unit_5         0,4,4,4,4,BRA # specialized unit config {<enabled>,<num_units>:<latency>:<initiation>,<ID_OC_SPEC>:<OC_EX_SPEC>,<NAME>}
+-specialized_unit_6         0,4,4,4,4,BRA # specialized unit config {<enabled>,<num_units>:<latency>:<initiation>,<ID_OC_SPEC>:<OC_EX_SPEC>,<NAME>}
+-specialized_unit_7         0,4,4,4,4,BRA # specialized unit config {<enabled>,<num_units>:<latency>:<initiation>,<ID_OC_SPEC>:<OC_EX_SPEC>,<NAME>}
+-specialized_unit_8         0,4,4,4,4,BRA # specialized unit config {<enabled>,<num_units>:<latency>:<initiation>,<ID_OC_SPEC>:<OC_EX_SPEC>,<NAME>}
+-gpgpu_perf_sim_memcpy                    1 # Fill the L2 cache on memcpy
+-gpgpu_simple_dram_model                    0 # simple_dram_model with fixed latency and BW
+-gpgpu_dram_scheduler                    1 # 0 = fifo, 1 = FR-FCFS (defaul)
+-gpgpu_dram_partition_queues          64:64:64:64 # i2$:$2d:d2$:$2i
+-l2_ideal                               0 # Use a ideal L2 cache that always hit
+-gpgpu_cache:dl2     S:64:128:8,L:B:m:L:L,A:256:4,4:0,32 # unified banked L2 data cache config  {<nsets>:<bsize>:<assoc>,<rep>:<wr>:<alloc>:<wr_alloc>,<mshr>:<N>:<merge>,<mq>}
+-gpgpu_cache:dl2_texture_only                    0 # L2 cache used for texture only
+-gpgpu_n_mem                            6 # number of memory modules (e.g. memory controllers) in gpu
+-gpgpu_n_sub_partition_per_mchannel                    2 # number of memory subpartition in each memory module
+-gpgpu_n_mem_per_ctrlr                    2 # number of memory chips per memory controller
+-gpgpu_memlatency_stat                   14 # track and display latency statistics 0x2 enables MC, 0x4 enables queue logs
+-gpgpu_frfcfs_dram_sched_queue_size                   64 # 0 = unlimited (default); # entries per chip
+-gpgpu_dram_return_queue_size                  116 # 0 = unlimited (default); # entries per chip
+-gpgpu_dram_buswidth                    4 # default = 4 bytes (8 bytes per cycle at DDR)
+-gpgpu_dram_burst_length                    8 # Burst length of each DRAM request (default = 4 data bus cycle)
+-dram_data_command_freq_ratio                    4 # Frequency ratio between DRAM data bus and command bus (default = 2 times, i.e. DDR)
+-gpgpu_dram_timing_opt nbk=16:CCD=2:RRD=6:RCD=12:RAS=28:RP=12:RC=40: CL=12:WL=4:CDLR=5:WR=12:nbkgrp=4:CCDL=3:RTPL=2 # DRAM timing parameters = {nbk:tCCD:tRRD:tRCD:tRAS:tRP:tRC:CL:WL:tCDLR:tWR:nbkgrp:tCCDL:tRTPL}
+-gpgpu_l2_rop_latency                  120 # ROP queue latency (default 85)
+-dram_latency                         100 # DRAM latency (default 30)
+-dram_dual_bus_interface                    0 # dual_bus_interface (default = 0) 
+-dram_bnk_indexing_policy                    0 # dram_bnk_indexing_policy (0 = normal indexing, 1 = Xoring with the higher bits) (Default = 0)
+-dram_bnkgrp_indexing_policy                    1 # dram_bnkgrp_indexing_policy (0 = take higher bits, 1 = take lower bits) (Default = 0)
+-dram_seperate_write_queue_enable                    0 # Seperate_Write_Queue_Enable
+-dram_write_queue_size             32:28:16 # Write_Queue_Size
+-dram_elimnate_rw_turnaround                    0 # elimnate_rw_turnaround i.e set tWTR and tRTW = 0
+-icnt_flit_size                        40 # icnt_flit_size
+-gpgpu_mem_addr_mapping dramid@8;00000000.00000000.00000000.00000000.0000RRRR.RRRRRRRR.BBBCCCCB.CCSSSSSS # mapping memory address to dram model {dramid@<start bit>;<memory address map>}
+-gpgpu_mem_addr_test                    0 # run sweep test to check address mapping for aliased address
+-gpgpu_mem_address_mask                    1 # 0 = old addressing mask, 1 = new addressing mask, 2 = new add. mask + flipped bank sel and chip sel bits
+-gpgpu_memory_partition_indexing                    0 # 0 = no indexing, 1 = bitwise xoring, 2 = IPoly, 3 = custom indexing
+-accelwattch_xml_file accelwattch_sass_sim.xml # AccelWattch XML file
+-power_simulation_enabled                    0 # Turn on power simulator (1=On, 0=Off)
+-power_per_cycle_dump                    0 # Dump detailed power output each cycle
+-hw_perf_file_name            hw_perf.csv # Hardware Performance Statistics file
+-hw_perf_bench_name                       # Kernel Name in Hardware Performance Statistics file
+-power_simulation_mode                    0 # Switch performance counter input for power simulation (0=Sim, 1=HW, 2=HW-Sim Hybrid)
+-dvfs_enabled                           0 # Turn on DVFS for power model
+-aggregate_power_stats                    0 # Accumulate power across all kernels
+-accelwattch_hybrid_perfsim_L1_RH                    0 # Get L1 Read Hits for Accelwattch-Hybrid from Accel-Sim
+-accelwattch_hybrid_perfsim_L1_RM                    0 # Get L1 Read Misses for Accelwattch-Hybrid from Accel-Sim
+-accelwattch_hybrid_perfsim_L1_WH                    0 # Get L1 Write Hits for Accelwattch-Hybrid from Accel-Sim
+-accelwattch_hybrid_perfsim_L1_WM                    0 # Get L1 Write Misses for Accelwattch-Hybrid from Accel-Sim
+-accelwattch_hybrid_perfsim_L2_RH                    0 # Get L2 Read Hits for Accelwattch-Hybrid from Accel-Sim
+-accelwattch_hybrid_perfsim_L2_RM                    0 # Get L2 Read Misses for Accelwattch-Hybrid from Accel-Sim
+-accelwattch_hybrid_perfsim_L2_WH                    0 # Get L2 Write Hits for Accelwattch-Hybrid from Accel-Sim
+-accelwattch_hybrid_perfsim_L2_WM                    0 # Get L2 Write Misses for Accelwattch-Hybrid from Accel-Sim
+-accelwattch_hybrid_perfsim_CC_ACC                    0 # Get Constant Cache Acesses for Accelwattch-Hybrid from Accel-Sim
+-accelwattch_hybrid_perfsim_SHARED_ACC                    0 # Get Shared Memory Acesses for Accelwattch-Hybrid from Accel-Sim
+-accelwattch_hybrid_perfsim_DRAM_RD                    0 # Get DRAM Reads for Accelwattch-Hybrid from Accel-Sim
+-accelwattch_hybrid_perfsim_DRAM_WR                    0 # Get DRAM Writes for Accelwattch-Hybrid from Accel-Sim
+-accelwattch_hybrid_perfsim_NOC                    0 # Get Interconnect Acesses for Accelwattch-Hybrid from Accel-Sim
+-accelwattch_hybrid_perfsim_PIPE_DUTY                    0 # Get Pipeline Duty Cycle Acesses for Accelwattch-Hybrid from Accel-Sim
+-accelwattch_hybrid_perfsim_NUM_SM_IDLE                    0 # Get Number of Idle SMs for Accelwattch-Hybrid from Accel-Sim
+-accelwattch_hybrid_perfsim_CYCLES                    0 # Get Executed Cycles for Accelwattch-Hybrid from Accel-Sim
+-accelwattch_hybrid_perfsim_VOLTAGE                    0 # Get Chip Voltage for Accelwattch-Hybrid from Accel-Sim
+-power_trace_enabled                    0 # produce a file for the power trace (1=On, 0=Off)
+-power_trace_zlevel                     6 # Compression level of the power trace output log (0=no comp, 9=highest)
+-steady_power_levels_enabled                    0 # produce a file for the steady power levels (1=On, 0=Off)
+-steady_state_definition                  8:4 # allowed deviation:number of samples
+-gpgpu_max_cycle                        0 # terminates gpu simulation early (0 = no limit)
+-gpgpu_max_insn                         0 # terminates gpu simulation early (0 = no limit)
+-gpgpu_max_cta                          0 # terminates gpu simulation early (0 = no limit)
+-gpgpu_max_completed_cta                    0 # terminates gpu simulation early (0 = no limit)
+-gpgpu_runtime_stat                   500 # display runtime statistics such as dram utilization {<freq>:<flag>}
+-liveness_message_freq                    1 # Minimum number of seconds between simulation liveness messages (0 = always print)
+-gpgpu_compute_capability_major                    2 # Major compute capability version number
+-gpgpu_compute_capability_minor                    0 # Minor compute capability version number
+-gpgpu_flush_l1_cache                    1 # Flush L1 cache at the end of each kernel call
+-gpgpu_flush_l2_cache                    0 # Flush L2 cache at the end of each kernel call
+-gpgpu_deadlock_detect                    1 # Stop the simulation at deadlock (1=on (default), 0=off)
+-gpgpu_ptx_instruction_classification                    0 # if enabled will classify ptx instruction types per kernel (Max 255 kernels now)
+-gpgpu_ptx_sim_mode                     0 # Select between Performance (default) or Functional simulation (1)
+-gpgpu_clock_domains 700.0:700.0:700.0:924.0 # Clock Domain Frequencies in MhZ {<Core Clock>:<ICNT Clock>:<L2 Clock>:<DRAM Clock>}
+-gpgpu_max_concurrent_kernel                    8 # maximum kernels that can run concurrently on GPU
+-gpgpu_cflog_interval                    0 # Interval between each snapshot in control flow logger
+-visualizer_enabled                     0 # Turn on visualizer output (1=On, 0=Off)
+-visualizer_outputfile                 NULL # Specifies the output log file for visualizer
+-visualizer_zlevel                      6 # Compression level of the visualizer output log (0=no comp, 9=highest)
+-gpgpu_stack_size_limit                 1024 # GPU thread stack size
+-gpgpu_heap_size_limit              8388608 # GPU malloc heap size 
+-gpgpu_runtime_sync_depth_limit                    2 # GPU device runtime synchronize depth
+-gpgpu_runtime_pending_launch_count_limit                 2048 # GPU device runtime pending launch count
+-trace_enabled                          0 # Turn on traces
+-trace_components                    none # comma seperated list of traces to enable. Complete list found in trace_streams.tup. Default none
+-trace_sampling_core                    0 # The core which is printed using CORE_DPRINTF. Default 0
+-trace_sampling_memory_partition                   -1 # The memory partition which is printed using MEMPART_DPRINTF. Default -1 (i.e. all)
+-enable_ptx_file_line_stats                    1 # Turn on PTX source line statistic profiling. (1 = On)
+-ptx_line_stats_filename gpgpu_inst_stats.txt # Output file for PTX source line statistics.
+-gpgpu_kernel_launch_latency                    0 # Kernel launch latency in cycles. Default: 0
+-gpgpu_cdp_enabled                      0 # Turn on CDP
+-gpgpu_TB_launch_latency                    0 # thread block launch latency in cycles. Default: 0
+DRAM Timing Options:
+nbk                                    16 # number of banks
+CCD                                     2 # column to column delay
+RRD                                     6 # minimal delay between activation of rows in different banks
+RCD                                    12 # row to column delay
+RAS                                    28 # time needed to activate row
+RP                                     12 # time needed to precharge (deactivate) row
+RC                                     40 # row cycle time
+CDLR                                    5 # switching from write to read (changes tWTR)
+WR                                     12 # last data-in to row precharge
+CL                                     12 # CAS latency
+WL                                      4 # Write latency
+nbkgrp                                  4 # number of bank groups
+CCDL                                    3 # column to column delay between accesses to different bank groups
+RTPL                                    2 # read to precharge delay between accesses to different bank groups
+Total number of memory sub partition = 12
+addr_dec_mask[CHIP]  = 0000000000000000 	high:64 low:0
+addr_dec_mask[BK]    = 000000000000e100 	high:16 low:8
+addr_dec_mask[ROW]   = 000000000fff0000 	high:28 low:16
+addr_dec_mask[COL]   = 0000000000001eff 	high:13 low:0
+addr_dec_mask[BURST] = 000000000000003f 	high:6 low:0
+sub_partition_id_mask = 0000000000000100
+GPGPU-Sim uArch: clock freqs: 700000000.000000:700000000.000000:700000000.000000:924000000.000000
+GPGPU-Sim uArch: clock periods: 0.00000000142857142857:0.00000000142857142857:0.00000000142857142857:0.00000000108225108225
+*** Initializing Memory Statistics ***
+GPGPU-Sim uArch: interconnect node map (shaderID+MemID to icntID)
+GPGPU-Sim uArch: Memory nodes ID start from index: 15
+GPGPU-Sim uArch:    0   1   2   3   4
+GPGPU-Sim uArch:    5   6   7   8   9
+GPGPU-Sim uArch:   10  11  12  13  14
+GPGPU-Sim uArch:   15  16  17  18  19
+GPGPU-Sim uArch:   20  21  22  23  24
+GPGPU-Sim uArch:   25  26
+GPGPU-Sim uArch: interconnect node reverse map (icntID to shaderID+MemID)
+GPGPU-Sim uArch: Memory nodes start from ID: 15
+GPGPU-Sim uArch:    0   1   2   3   4
+GPGPU-Sim uArch:    5   6   7   8   9
+GPGPU-Sim uArch:   10  11  12  13  14
+GPGPU-Sim uArch:   15  16  17  18  19
+GPGPU-Sim uArch:   20  21  22  23  24
+GPGPU-Sim uArch:   25  26
+a2fd989cc4aa0c0b42248b8779c10db9  /afs/cs.wisc.edu/u/r/a/rajesh/public/accel-sim-framework/gpu-simulator/gpgpu-sim/test/mmul
+Extracting PTX file and ptxas options    1: mmul.1.sm_30.ptx -arch=sm_30
+GPGPU-Sim uArch: performance model initialization complete.
+self exe links to: /afs/cs.wisc.edu/u/r/a/rajesh/public/accel-sim-framework/gpu-simulator/gpgpu-sim/test/mmul
+self exe links to: /afs/cs.wisc.edu/u/r/a/rajesh/public/accel-sim-framework/gpu-simulator/gpgpu-sim/test/mmul
+9.1
+GPGPU-Sim PTX: __cudaRegisterFatBinary, fat_cubin_handle = 1, filename=default
+self exe links to: /afs/cs.wisc.edu/u/r/a/rajesh/public/accel-sim-framework/gpu-simulator/gpgpu-sim/test/mmul
+Running md5sum using "md5sum /afs/cs.wisc.edu/u/r/a/rajesh/public/accel-sim-framework/gpu-simulator/gpgpu-sim/test/mmul "
+self exe links to: /afs/cs.wisc.edu/u/r/a/rajesh/public/accel-sim-framework/gpu-simulator/gpgpu-sim/test/mmul
+Extracting specific PTX file named mmul.1.sm_30.ptx 
+GPGPU-Sim PTX: __cudaRegisterFunction _Z20gpu_matrix_transposePiS_jj : hostFun 0x0x401cce, fat_cubin_handle = 1
+GPGPU-Sim PTX: Parsing mmul.1.sm_30.ptx
+GPGPU-Sim PTX: instruction assembly for function '_Z15gpu_matrix_multPiS_S_iii'...   done.
+GPGPU-Sim PTX: allocating shared region for "_Z22gpu_square_matrix_multPiS_S_i$__cuda_local_var_19764_33_non_const_tile_a" from 0x0 to 0x400 (shared memory space)
+GPGPU-Sim PTX: allocating shared region for "_Z22gpu_square_matrix_multPiS_S_i$__cuda_local_var_19765_33_non_const_tile_b" from 0x400 to 0x800 (shared memory space)
+GPGPU-Sim PTX: instruction assembly for function '_Z22gpu_square_matrix_multPiS_S_i'...   done.
+GPGPU-Sim PTX: instruction assembly for function '_Z20gpu_matrix_transposePiS_jj'...   done.
+GPGPU-Sim PTX: finished parsing EMBEDDED .ptx file mmul.1.sm_30.ptx
+GPGPU-Sim PTX: loading globals with explicit initializers... 
+GPGPU-Sim PTX: finished loading globals (0 bytes total).
+GPGPU-Sim PTX: loading constants with explicit initializers...  done.
+GPGPU-Sim PTX: Loading PTXInfo from mmul.1.sm_30.ptx
+GPGPU-Sim PTX: Kernel '_Z20gpu_matrix_transposePiS_jj' : regs=7, lmem=0, smem=0, cmem=344
+GPGPU-Sim PTX: Kernel '_Z22gpu_square_matrix_multPiS_S_i' : regs=24, lmem=0, smem=2048, cmem=348
+GPGPU-Sim PTX: Kernel '_Z15gpu_matrix_multPiS_S_iii' : regs=32, lmem=0, smem=0, cmem=356
+GPGPU-Sim PTX: __cudaRegisterFunction _Z22gpu_square_matrix_multPiS_S_i : hostFun 0x0x401be8, fat_cubin_handle = 1
+GPGPU-Sim PTX: __cudaRegisterFunction _Z15gpu_matrix_multPiS_S_iii : hostFun 0x0x401aec, fat_cubin_handle = 1
+please type in m n and k
+event update
+GPGPU-Sim PTX: Setting up arguments for 8 bytes starting at 0x7ffccdffec98..
+GPGPU-Sim PTX: Setting up arguments for 8 bytes starting at 0x7ffccdffec90..
+GPGPU-Sim PTX: Setting up arguments for 8 bytes starting at 0x7ffccdffec88..
+GPGPU-Sim PTX: Setting up arguments for 4 bytes starting at 0x7ffccdffec84..
+
+GPGPU-Sim PTX: cudaLaunch for 0x0x401be8 (mode=performance simulation) on stream 0
+GPGPU-Sim PTX: finding reconvergence points for '_Z22gpu_square_matrix_multPiS_S_i'...
+GPGPU-Sim PTX: Finding dominators for '_Z22gpu_square_matrix_multPiS_S_i'...
+GPGPU-Sim PTX: Finding immediate dominators for '_Z22gpu_square_matrix_multPiS_S_i'...
+GPGPU-Sim PTX: Finding postdominators for '_Z22gpu_square_matrix_multPiS_S_i'...
+GPGPU-Sim PTX: Finding immediate postdominators for '_Z22gpu_square_matrix_multPiS_S_i'...
+GPGPU-Sim PTX: pre-decoding instructions for '_Z22gpu_square_matrix_multPiS_S_i'...
+GPGPU-Sim PTX: reconvergence points for _Z22gpu_square_matrix_multPiS_S_i...
+GPGPU-Sim PTX:  1 (potential) branch divergence @  PC=0x3a0 (mmul.1.sm_30.ptx:189) @%p1 bra BB1_7;
+GPGPU-Sim PTX:    immediate post dominator      @  PC=0x688 (mmul.1.sm_30.ptx:293) shl.b32 %r88, %r1, 4;
+GPGPU-Sim PTX:  2 (potential) branch divergence @  PC=0x470 (mmul.1.sm_30.ptx:218) @%p2 bra BB1_4;
+GPGPU-Sim PTX:    immediate post dominator      @  PC=0x490 (mmul.1.sm_30.ptx:225) st.shared.u32 [%r4], %r108;
+GPGPU-Sim PTX:  3 (potential) branch divergence @  PC=0x4a8 (mmul.1.sm_30.ptx:228) @%p3 bra BB1_6;
+GPGPU-Sim PTX:    immediate post dominator      @  PC=0x4c8 (mmul.1.sm_30.ptx:235) st.shared.u32 [%r5], %r109;
+GPGPU-Sim PTX:  4 (potential) branch divergence @  PC=0x680 (mmul.1.sm_30.ptx:290) @%p4 bra BB1_2;
+GPGPU-Sim PTX:    immediate post dominator      @  PC=0x688 (mmul.1.sm_30.ptx:293) shl.b32 %r88, %r1, 4;
+GPGPU-Sim PTX:  5 (potential) branch divergence @  PC=0x6d8 (mmul.1.sm_30.ptx:303) @!%p7 bra BB1_9;
+GPGPU-Sim PTX:    immediate post dominator      @  PC=0x710 (mmul.1.sm_30.ptx:314) ret;
+GPGPU-Sim PTX:  6 (potential) branch divergence @  PC=0x6e0 (mmul.1.sm_30.ptx:304) bra.uni BB1_8;
+GPGPU-Sim PTX:    immediate post dominator      @  PC=0x6e8 (mmul.1.sm_30.ptx:307) mad.lo.s32 %r103, %r90, %r23, %r94;
+GPGPU-Sim PTX: ... end of reconvergence points for _Z22gpu_square_matrix_multPiS_S_i
+GPGPU-Sim PTX: ... done pre-decoding instructions for '_Z22gpu_square_matrix_multPiS_S_i'.
+GPGPU-Sim PTX: pushing kernel '_Z22gpu_square_matrix_multPiS_S_i' to stream 0, gridDim= (4,4,1) blockDim = (16,16,1) 
+GPGPU-Sim uArch: Shader 0 bind to kernel 1 '_Z22gpu_square_matrix_multPiS_S_i'
+GPGPU-Sim uArch: CTA/core = 5, limited by: regs
+GPGPU-Sim uArch: Shader 1 bind to kernel 1 '_Z22gpu_square_matrix_multPiS_S_i'
+GPGPU-Sim uArch: Shader 2 bind to kernel 1 '_Z22gpu_square_matrix_multPiS_S_i'
+GPGPU-Sim uArch: Shader 3 bind to kernel 1 '_Z22gpu_square_matrix_multPiS_S_i'
+GPGPU-Sim uArch: Shader 4 bind to kernel 1 '_Z22gpu_square_matrix_multPiS_S_i'
+GPGPU-Sim uArch: Shader 5 bind to kernel 1 '_Z22gpu_square_matrix_multPiS_S_i'
+GPGPU-Sim uArch: Shader 6 bind to kernel 1 '_Z22gpu_square_matrix_multPiS_S_i'
+GPGPU-Sim uArch: Shader 7 bind to kernel 1 '_Z22gpu_square_matrix_multPiS_S_i'
+GPGPU-Sim uArch: Shader 8 bind to kernel 1 '_Z22gpu_square_matrix_multPiS_S_i'
+GPGPU-Sim uArch: Shader 9 bind to kernel 1 '_Z22gpu_square_matrix_multPiS_S_i'
+GPGPU-Sim uArch: Shader 10 bind to kernel 1 '_Z22gpu_square_matrix_multPiS_S_i'
+GPGPU-Sim uArch: Shader 11 bind to kernel 1 '_Z22gpu_square_matrix_multPiS_S_i'
+GPGPU-Sim uArch: Shader 12 bind to kernel 1 '_Z22gpu_square_matrix_multPiS_S_i'
+GPGPU-Sim uArch: Shader 13 bind to kernel 1 '_Z22gpu_square_matrix_multPiS_S_i'
+GPGPU-Sim uArch: Shader 14 bind to kernel 1 '_Z22gpu_square_matrix_multPiS_S_i'
+Bypassed here
+  mf: uid=  3443, sid07:w00, part=1, addr=0xc0000d80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1354), 0x0488 w00[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3459, sid07:w00, part=1, addr=0xc0000d40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1355), 
+Bypassed here
+  mf: uid=  3465, sid07:w00, part=0, addr=0xc0000c80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1356), 
+Bypassed here
+  mf: uid=  3460, sid07:w00, part=1, addr=0xc0000d60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1357), 
+Bypassed here
+  mf: uid=  3472, sid07:w02, part=4, addr=0xc0001080, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1358), 
+Bypassed here
+  mf: uid=  3466, sid07:w00, part=0, addr=0xc0000ca0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1359), 
+Bypassed here
+  mf: uid=  3485, sid07:w02, part=3, addr=0xc0000f80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1360), 
+Bypassed here
+  mf: uid=  3473, sid07:w02, part=4, addr=0xc00010a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1361), 
+Bypassed here
+  mf: uid=  3461, sid04:w00, part=1, addr=0xc0000d80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1362), 0x0488 w00[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3503, sid07:w01, part=2, addr=0xc0000ec0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1362), 
+Bypassed here
+  mf: uid=  3528, sid04:w00, part=1, addr=0xc0000d40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1363), 
+Bypassed here
+  mf: uid=  3486, sid07:w02, part=3, addr=0xc0000fa0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1363), 
+Bypassed here
+  mf: uid=  3539, sid04:w00, part=0, addr=0xc0000c80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1364), 
+Bypassed here
+  mf: uid=  3450, sid07:w02, part=4, addr=0xc0001060, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1364), 0x0488 w02[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3529, sid04:w00, part=1, addr=0xc0000d60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1365), 
+Bypassed here
+  mf: uid=  3477, sid07:w03, part=5, addr=0xc00011e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1365), 0x0488 w03[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3552, sid04:w02, part=4, addr=0xc0001080, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1366), 
+Bypassed here
+  mf: uid=  3482, sid06:w00, part=1, addr=0xc0000d80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1366), 0x0488 w00[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3526, sid07:w03, part=0, addr=0xc0001200, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1366), 
+Bypassed here
+  mf: uid=  3540, sid04:w00, part=0, addr=0xc0000ca0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1367), 
+Bypassed here
+  mf: uid=  3567, sid06:w00, part=1, addr=0xc0000d40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1367), 
+Bypassed here
+  mf: uid=  3569, sid07:w04, part=1, addr=0xc0001380, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1367), 
+Bypassed here
+  mf: uid=  3553, sid04:w02, part=4, addr=0xc00010a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1368), 
+Bypassed here
+  mf: uid=  3583, sid06:w00, part=0, addr=0xc0000c80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1368), 
+Bypassed here
+  mf: uid=  3504, sid07:w01, part=2, addr=0xc0000ee0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1368), 
+Bypassed here
+  mf: uid=  3491, sid04:w02, part=4, addr=0xc0001060, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1369), 0x0488 w02[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3568, sid06:w00, part=1, addr=0xc0000d60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1369), 
+Bypassed here
+  mf: uid=  3487, sid07:w02, part=3, addr=0xc0000fc0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1369), 
+Bypassed here
+  mf: uid=  3495, sid01:w00, part=1, addr=0xc0000100, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1370), 0x0488 w00[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3584, sid06:w00, part=0, addr=0xc0000ca0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1370), 
+Bypassed here
+  mf: uid=  3538, sid07:w06, part=3, addr=0xc00015e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1370), 0x0488 w06[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3637, sid01:w02, part=4, addr=0xc0000400, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1371), 
+Bypassed here
+  mf: uid=  3519, sid02:w00, part=1, addr=0xc0000100, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1371), 0x0488 w00[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3603, sid07:w06, part=4, addr=0xc0001680, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1371), 
+Bypassed here
+  mf: uid=  3601, sid01:w00, part=0, addr=0xc00000c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1372), 
+Bypassed here
+  mf: uid=  3535, sid05:w00, part=1, addr=0xc0000d80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1372), 0x0488 w00[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3554, sid07:w03, part=5, addr=0xc0001100, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1372), 
+Bypassed here
+  mf: uid=  3638, sid01:w02, part=4, addr=0xc0000420, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1373), 
+Bypassed here
+  mf: uid=  3650, sid05:w00, part=1, addr=0xc0000d40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1373), 
+Bypassed here
+  mf: uid=  3527, sid07:w03, part=0, addr=0xc0001220, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1373), 
+Bypassed here
+  mf: uid=  3602, sid01:w00, part=0, addr=0xc00000e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1374), 
+Bypassed here
+  mf: uid=  3651, sid05:w00, part=1, addr=0xc0000d60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1374), 
+Bypassed here
+  mf: uid=  3676, sid06:w02, part=4, addr=0xc0001080, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1374), 
+Bypassed here
+  mf: uid=  3570, sid07:w04, part=1, addr=0xc00013a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1374), 
+Bypassed here
+  mf: uid=  3618, sid01:w00, part=0, addr=0xc0000000, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1375), 
+Bypassed here
+  mf: uid=  3677, sid06:w02, part=4, addr=0xc00010a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1375), 
+Bypassed here
+  mf: uid=  3514, sid07:w01, part=2, addr=0xc0000e00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1375), 
+Bypassed here
+  mf: uid=  3619, sid01:w00, part=0, addr=0xc0000020, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1376), 
+Bypassed here
+  mf: uid=  3691, sid05:w02, part=4, addr=0xc0001080, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1376), 
+Bypassed here
+  mf: uid=  3565, sid07:w05, part=2, addr=0xc0001480, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1376), 0x0488 w05[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3741, sid08:w00, part=1, addr=0xc00019c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1376), 
+Bypassed here
+  mf: uid=  3633, sid02:w00, part=0, addr=0xc00000c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1377), 
+Bypassed here
+  mf: uid=  3692, sid05:w02, part=4, addr=0xc00010a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1377), 
+Bypassed here
+  mf: uid=  3488, sid07:w02, part=3, addr=0xc0000fe0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1377), 
+Bypassed here
+  mf: uid=  3742, sid08:w00, part=1, addr=0xc00019e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1377), 
+Bypassed here
+  mf: uid=  3634, sid02:w00, part=0, addr=0xc00000e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1378), 
+Bypassed here
+  mf: uid=  3564, sid06:w02, part=4, addr=0xc0001060, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1378), 0x0488 w02[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3656, sid07:w05, part=3, addr=0xc0001500, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1378), 
+Bypassed here
+  mf: uid=  3759, sid08:w00, part=1, addr=0xc0001900, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1378), 
+Bypassed here
+  mf: uid=  3648, sid02:w00, part=0, addr=0xc0000000, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1379), 
+Bypassed here
+  mf: uid=  3596, sid05:w02, part=4, addr=0xc0001060, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1379), 0x0488 w02[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3604, sid07:w06, part=4, addr=0xc00016a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1379), 
+Bypassed here
+  mf: uid=  3760, sid08:w00, part=1, addr=0xc0001920, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1379), 
+Bypassed here
+  mf: uid=  3775, sid02:w01, part=1, addr=0xc0000180, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1380), 
+Bypassed here
+  mf: uid=  3555, sid07:w03, part=5, addr=0xc0001120, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1380), 
+Bypassed here
+  mf: uid=  3685, sid08:w02, part=4, addr=0xc0001ce0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1380), 0x0488 w02[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3649, sid02:w00, part=0, addr=0xc0000020, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1381), 
+Bypassed here
+  mf: uid=  3727, sid07:w07, part=5, addr=0xc0001780, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1381), 
+Bypassed here
+  mf: uid=  3813, sid08:w02, part=4, addr=0xc0001c00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1381), 
+Bypassed here
+  mf: uid=  3776, sid02:w01, part=1, addr=0xc00001a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1382), 
+Bypassed here
+  mf: uid=  3670, sid05:w00, part=0, addr=0xc0000c80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1382), 
+Bypassed here
+  mf: uid=  3585, sid07:w04, part=0, addr=0xc00012c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1382), 
+Bypassed here
+  mf: uid=  3814, sid08:w02, part=4, addr=0xc0001c20, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1382), 
+Bypassed here
+  mf: uid=  3777, sid02:w01, part=1, addr=0xc00001c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1383), 
+Bypassed here
+  mf: uid=  3671, sid05:w00, part=0, addr=0xc0000ca0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1383), 
+Bypassed here
+  mf: uid=  3571, sid07:w04, part=1, addr=0xc00013c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1383), 
+Bypassed here
+  mf: uid=  3815, sid08:w02, part=4, addr=0xc0001c40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1383), 
+Bypassed here
+  mf: uid=  3778, sid02:w01, part=1, addr=0xc00001e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1384), 
+Bypassed here
+  mf: uid=  3515, sid07:w01, part=2, addr=0xc0000e20, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1384), 
+Bypassed here
+  mf: uid=  3816, sid08:w02, part=4, addr=0xc0001c60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1384), 
+Bypassed here
+  mf: uid=  3893, sid02:w03, part=4, addr=0xc0000480, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1385), 
+Bypassed here
+  mf: uid=  3794, sid03:w01, part=1, addr=0xc0000180, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1385), 
+Bypassed here
+  mf: uid=  3689, sid07:w05, part=2, addr=0xc0001440, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1385), 
+Bypassed here
+  mf: uid=  3894, sid02:w03, part=4, addr=0xc00004a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1386), 
+Bypassed here
+  mf: uid=  3795, sid03:w01, part=1, addr=0xc00001a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1386), 
+Bypassed here
+  mf: uid=  3454, sid07:w01, part=3, addr=0xc0000f00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1386), 0x0488 w01[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3895, sid02:w03, part=4, addr=0xc00004c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1387), 
+Bypassed here
+  mf: uid=  3796, sid03:w01, part=1, addr=0xc00001c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1387), 
+Bypassed here
+  mf: uid=  3587, sid04:w02, part=3, addr=0xc0000f80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1387), 
+Bypassed here
+  mf: uid=  3657, sid07:w05, part=3, addr=0xc0001520, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1387), 
+Bypassed here
+  mf: uid=  3896, sid02:w03, part=4, addr=0xc00004e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1388), 
+Bypassed here
+  mf: uid=  3797, sid03:w01, part=1, addr=0xc00001e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1388), 
+Bypassed here
+  mf: uid=  3588, sid04:w02, part=3, addr=0xc0000fa0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1388), 
+Bypassed here
+  mf: uid=  3605, sid07:w06, part=4, addr=0xc00016c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1388), 
+Bypassed here
+  mf: uid=  3915, sid02:w02, part=4, addr=0xc0000400, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1389), 
+Bypassed here
+  mf: uid=  3593, sid03:w00, part=1, addr=0xc0000100, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1389), 0x0488 w00[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3589, sid04:w02, part=3, addr=0xc0000fc0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1389), 
+Bypassed here
+  mf: uid=  3556, sid07:w03, part=5, addr=0xc0001140, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1389), 
+Bypassed here
+  mf: uid=  3916, sid02:w02, part=4, addr=0xc0000420, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1390), 
+Bypassed here
+  mf: uid=  3590, sid04:w02, part=3, addr=0xc0000fe0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1390), 
+Bypassed here
+  mf: uid=  3728, sid07:w07, part=5, addr=0xc00017a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1390), 
+Bypassed here
+  mf: uid=  3835, sid09:w00, part=1, addr=0xc00019c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1390), 
+Bypassed here
+  mf: uid=  3971, sid03:w03, part=4, addr=0xc0000480, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1391), 
+Bypassed here
+  mf: uid=  3511, sid06:w01, part=3, addr=0xc0000f00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1391), 0x0488 w01[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3703, sid07:w07, part=0, addr=0xc0001800, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1391), 
+Bypassed here
+  mf: uid=  3836, sid09:w00, part=1, addr=0xc00019e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1391), 
+Bypassed here
+  mf: uid=  3860, sid01:w01, part=1, addr=0xc0000180, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1392), 
+Bypassed here
+  mf: uid=  3972, sid03:w03, part=4, addr=0xc00004a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1392), 
+Bypassed here
+  mf: uid=  3508, sid04:w01, part=3, addr=0xc0000f00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1392), 0x0488 w01[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3586, sid07:w04, part=0, addr=0xc00012e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1392), 
+Bypassed here
+  mf: uid=  3541, sid01:w02, part=3, addr=0xc00003e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1393), 0x0488 w02[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3973, sid03:w03, part=4, addr=0xc00004c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1393), 
+Bypassed here
+  mf: uid=  3721, sid04:w03, part=0, addr=0xc0001200, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1393), 
+Bypassed here
+  mf: uid=  3572, sid07:w04, part=1, addr=0xc00013e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1393), 
+Bypassed here
+  mf: uid=  3861, sid01:w01, part=1, addr=0xc00001a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1394), 
+Bypassed here
+  mf: uid=  3974, sid03:w03, part=4, addr=0xc00004e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1394), 
+Bypassed here
+  mf: uid=  3722, sid04:w03, part=0, addr=0xc0001220, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1394), 
+Bypassed here
+  mf: uid=  3864, sid06:w04, part=1, addr=0xc0001380, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1394), 
+Bypassed here
+  mf: uid=  3516, sid07:w01, part=2, addr=0xc0000e40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1394), 
+Bypassed here
+  mf: uid=  3672, sid01:w02, part=3, addr=0xc0000300, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1395), 
+Bypassed here
+  mf: uid=  3996, sid03:w02, part=4, addr=0xc0000400, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1395), 
+Bypassed here
+  mf: uid=  3739, sid06:w03, part=0, addr=0xc0001200, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1395), 
+Bypassed here
+  mf: uid=  3690, sid07:w05, part=2, addr=0xc0001460, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1395), 
+Bypassed here
+  mf: uid=  3862, sid01:w01, part=1, addr=0xc00001c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1396), 
+Bypassed here
+  mf: uid=  3997, sid03:w02, part=4, addr=0xc0000420, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1396), 
+Bypassed here
+  mf: uid=  3865, sid06:w04, part=1, addr=0xc00013a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1396), 
+Bypassed here
+  mf: uid=  3658, sid07:w05, part=3, addr=0xc0001540, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1396), 
+Bypassed here
+  mf: uid=  3673, sid01:w02, part=3, addr=0xc0000320, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1397), 
+Bypassed here
+  mf: uid=  3699, sid06:w05, part=2, addr=0xc0001480, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1397), 0x0488 w05[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3606, sid07:w06, part=4, addr=0xc00016e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1397), 
+Bypassed here
+  mf: uid=  4049, sid01:w03, part=4, addr=0xc0000480, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1398), 
+Bypassed here
+  mf: uid=  3740, sid06:w03, part=0, addr=0xc0001220, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1398), 
+Bypassed here
+  mf: uid=  3557, sid07:w03, part=5, addr=0xc0001160, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1398), 
+Bypassed here
+  mf: uid=  3863, sid01:w01, part=1, addr=0xc00001e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1399), 
+Bypassed here
+  mf: uid=  3562, sid04:w03, part=5, addr=0xc00011e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1399), 0x0488 w03[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3885, sid05:w03, part=0, addr=0xc0001200, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1399), 
+Bypassed here
+  mf: uid=  3866, sid06:w04, part=1, addr=0xc00013c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1399), 
+Bypassed here
+  mf: uid=  3630, sid07:w07, part=5, addr=0xc0001760, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1399), 0x0488 w07[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3674, sid01:w02, part=3, addr=0xc0000340, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1400), 
+Bypassed here
+  mf: uid=  3886, sid05:w03, part=0, addr=0xc0001220, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1400), 
+Bypassed here
+  mf: uid=  3965, sid06:w05, part=2, addr=0xc0001440, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1400), 
+Bypassed here
+  mf: uid=  3704, sid07:w07, part=0, addr=0xc0001820, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1400), 
+Bypassed here
+  mf: uid=  4028, sid08:w06, part=5, addr=0xc0002300, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1400), 
+Bypassed here
+  mf: uid=  3887, sid09:w00, part=1, addr=0xc0001900, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1400), 
+Bypassed here
+  mf: uid=  4050, sid01:w03, part=4, addr=0xc00004a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1401), 
+Bypassed here
+  mf: uid=  3613, sid06:w03, part=5, addr=0xc00011e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1401), 0x0488 w03[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3517, sid07:w01, part=2, addr=0xc0000e60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1401), 
+Bypassed here
+  mf: uid=  4029, sid08:w06, part=5, addr=0xc0002320, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1401), 
+Bypassed here
+  mf: uid=  3888, sid09:w00, part=1, addr=0xc0001920, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1401), 
+Bypassed here
+  mf: uid=  3675, sid01:w02, part=3, addr=0xc0000360, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1402), 
+Bypassed here
+  mf: uid=  3909, sid06:w04, part=0, addr=0xc00012c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1402), 
+Bypassed here
+  mf: uid=  3659, sid07:w05, part=3, addr=0xc0001560, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1402), 
+Bypassed here
+  mf: uid=  3781, sid08:w02, part=5, addr=0xc0001d00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1402), 
+Bypassed here
+  mf: uid=  3930, sid10:w00, part=1, addr=0xc00019c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1402), 
+Bypassed here
+  mf: uid=  4051, sid01:w03, part=4, addr=0xc00004c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1403), 
+Bypassed here
+  mf: uid=  3626, sid04:w06, part=3, addr=0xc00015e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1403), 0x0488 w06[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3867, sid06:w04, part=1, addr=0xc00013e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1403), 
+Bypassed here
+  mf: uid=  3525, sid07:w06, part=4, addr=0xc0001600, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1403), 0x0488 w06[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4030, sid08:w06, part=5, addr=0xc0002340, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1403), 
+Bypassed here
+  mf: uid=  3931, sid10:w00, part=1, addr=0xc00019e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1403), 
+Bypassed here
+  mf: uid=  4052, sid01:w03, part=4, addr=0xc00004e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1404), 
+Bypassed here
+  mf: uid=  3839, sid04:w06, part=4, addr=0xc0001680, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1404), 
+Bypassed here
+  mf: uid=  3620, sid06:w01, part=2, addr=0xc0000ec0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1404), 
+Bypassed here
+  mf: uid=  3705, sid07:w07, part=0, addr=0xc0001840, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1404), 
+Bypassed here
+  mf: uid=  3782, sid08:w02, part=5, addr=0xc0001d20, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1404), 
+Bypassed here
+  mf: uid=  3951, sid10:w00, part=1, addr=0xc0001900, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1404), 
+Bypassed here
+  mf: uid=  3800, sid02:w03, part=5, addr=0xc0000580, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1405), 
+Bypassed here
+  mf: uid=  3911, sid04:w04, part=1, addr=0xc0001380, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1405), 
+Bypassed here
+  mf: uid=  3966, sid06:w05, part=2, addr=0xc0001460, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1405), 
+Bypassed here
+  mf: uid=  3706, sid07:w07, part=0, addr=0xc0001860, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1405), 
+Bypassed here
+  mf: uid=  4031, sid08:w06, part=5, addr=0xc0002360, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1405), 
+Bypassed here
+  mf: uid=  3879, sid09:w02, part=4, addr=0xc0001ce0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1405), 0x0488 w02[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3952, sid10:w00, part=1, addr=0xc0001920, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1405), 
+Bypassed here
+  mf: uid=  3801, sid02:w03, part=5, addr=0xc00005a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1406), 
+Bypassed here
+  mf: uid=  3833, sid03:w00, part=0, addr=0xc00000c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1406), 
+Bypassed here
+  mf: uid=  3697, sid04:w05, part=2, addr=0xc0001480, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1406), 0x0488 w05[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3723, sid06:w02, part=3, addr=0xc0000f80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1406), 
+Bypassed here
+  mf: uid=  4150, sid09:w02, part=4, addr=0xc0001c00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1406), 
+Bypassed here
+  mf: uid=  3986, sid11:w00, part=1, addr=0xc00019c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1406), 
+Bypassed here
+  mf: uid=  3834, sid03:w00, part=0, addr=0xc00000e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1407), 
+Bypassed here
+  mf: uid=  3840, sid04:w06, part=4, addr=0xc00016a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1407), 
+Bypassed here
+  mf: uid=  3932, sid06:w05, part=3, addr=0xc0001500, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1407), 
+Bypassed here
+  mf: uid=  4151, sid09:w02, part=4, addr=0xc0001c20, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1407), 
+Bypassed here
+  mf: uid=  3987, sid11:w00, part=1, addr=0xc00019e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1407), 
+Bypassed here
+  mf: uid=  3858, sid03:w00, part=0, addr=0xc0000000, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1408), 
+Bypassed here
+  mf: uid=  3817, sid04:w03, part=5, addr=0xc0001100, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1408), 
+Bypassed here
+  mf: uid=  3910, sid06:w04, part=0, addr=0xc00012e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1408), 
+Bypassed here
+  mf: uid=  4152, sid09:w02, part=4, addr=0xc0001c40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1408), 
+Bypassed here
+  mf: uid=  4016, sid11:w00, part=1, addr=0xc0001900, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1408), 
+Bypassed here
+  mf: uid=  3859, sid03:w00, part=0, addr=0xc0000020, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1409), 
+Bypassed here
+  mf: uid=  4073, sid04:w07, part=5, addr=0xc0001780, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1409), 
+Bypassed here
+  mf: uid=  3621, sid06:w01, part=2, addr=0xc0000ee0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1409), 
+Bypassed here
+  mf: uid=  3928, sid08:w03, part=0, addr=0xc0001e80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1409), 
+Bypassed here
+  mf: uid=  4153, sid09:w02, part=4, addr=0xc0001c60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1409), 
+Bypassed here
+  mf: uid=  4017, sid11:w00, part=1, addr=0xc0001920, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1409), 
+Bypassed here
+  mf: uid=  4041, sid04:w07, part=0, addr=0xc0001800, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1410), 
+Bypassed here
+  mf: uid=  3724, sid06:w02, part=3, addr=0xc0000fa0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1410), 
+Bypassed here
+  mf: uid=  3929, sid08:w03, part=0, addr=0xc0001ea0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1410), 
+Bypassed here
+  mf: uid=  3958, sid10:w02, part=4, addr=0xc0001ce0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1410), 0x0488 w02[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4120, sid12:w00, part=1, addr=0xc0002580, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1410), 
+Bypassed here
+  mf: uid=  3949, sid04:w04, part=0, addr=0xc00012c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1411), 
+Bypassed here
+  mf: uid=  3933, sid06:w05, part=3, addr=0xc0001520, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1411), 
+Bypassed here
+  mf: uid=  4200, sid10:w02, part=4, addr=0xc0001c00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1411), 
+Bypassed here
+  mf: uid=  4121, sid12:w00, part=1, addr=0xc00025a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1411), 
+Bypassed here
+  mf: uid=  3912, sid04:w04, part=1, addr=0xc00013a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1412), 
+Bypassed here
+  mf: uid=  3725, sid06:w02, part=3, addr=0xc0000fc0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1412), 
+Bypassed here
+  mf: uid=  4201, sid10:w02, part=4, addr=0xc0001c20, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1412), 
+Bypassed here
+  mf: uid=  4179, sid13:w00, part=1, addr=0xc0002580, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1412), 
+Bypassed here
+  mf: uid=  3635, sid04:w01, part=2, addr=0xc0000ec0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1413), 
+Bypassed here
+  mf: uid=  3934, sid06:w05, part=3, addr=0xc0001540, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1413), 
+Bypassed here
+  mf: uid=  4202, sid10:w02, part=4, addr=0xc0001c40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1413), 
+Bypassed here
+  mf: uid=  4180, sid13:w00, part=1, addr=0xc00025a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1413), 
+Bypassed here
+  mf: uid=  4022, sid04:w05, part=2, addr=0xc0001440, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1414), 
+Bypassed here
+  mf: uid=  3726, sid06:w02, part=3, addr=0xc0000fe0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1414), 
+Bypassed here
+  mf: uid=  4203, sid10:w02, part=4, addr=0xc0001c60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1414), 
+Bypassed here
+  mf: uid=  4248, sid14:w00, part=1, addr=0xc0002580, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1414), 
+Bypassed here
+  mf: uid=  3841, sid04:w06, part=4, addr=0xc00016c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1415), 
+Bypassed here
+  mf: uid=  3743, sid05:w02, part=3, addr=0xc0000f80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1415), 
+Bypassed here
+  mf: uid=  3935, sid06:w05, part=3, addr=0xc0001560, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1415), 
+Bypassed here
+  mf: uid=  4056, sid11:w02, part=4, addr=0xc0001ce0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1415), 0x0488 w02[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4249, sid14:w00, part=1, addr=0xc00025a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1415), 
+Bypassed here
+  mf: uid=  4212, sid00:w00, part=1, addr=0xc0000100, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1416), 0x0488 w00[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3818, sid04:w03, part=5, addr=0xc0001120, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1416), 
+Bypassed here
+  mf: uid=  3744, sid05:w02, part=3, addr=0xc0000fa0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1416), 
+Bypassed here
+  mf: uid=  4258, sid11:w02, part=4, addr=0xc0001c00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1416), 
+Bypassed here
+  mf: uid=  4411, sid00:w01, part=1, addr=0xc0000180, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1417), 
+Bypassed here
+  mf: uid=  4074, sid04:w07, part=5, addr=0xc00017a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1417), 
+Bypassed here
+  mf: uid=  3745, sid05:w02, part=3, addr=0xc0000fc0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1417), 
+Bypassed here
+  mf: uid=  4259, sid11:w02, part=4, addr=0xc0001c20, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1417), 
+Bypassed here
+  mf: uid=  4412, sid00:w01, part=1, addr=0xc00001a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1418), 
+Bypassed here
+  mf: uid=  4042, sid04:w07, part=0, addr=0xc0001820, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1418), 
+Bypassed here
+  mf: uid=  3746, sid05:w02, part=3, addr=0xc0000fe0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1418), 
+Bypassed here
+  mf: uid=  4260, sid11:w02, part=4, addr=0xc0001c40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1418), 
+Bypassed here
+  mf: uid=  4413, sid00:w01, part=1, addr=0xc00001c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1419), 
+Bypassed here
+  mf: uid=  3950, sid04:w04, part=0, addr=0xc00012e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1419), 
+Bypassed here
+  mf: uid=  3627, sid05:w01, part=3, addr=0xc0000f00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1419), 0x0488 w01[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4261, sid11:w02, part=4, addr=0xc0001c60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1419), 
+Bypassed here
+  mf: uid=  4362, sid00:w02, part=4, addr=0xc0000400, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1420), 
+Bypassed here
+  mf: uid=  3913, sid04:w04, part=1, addr=0xc00013c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1420), 
+Bypassed here
+  mf: uid=  3717, sid08:w01, part=3, addr=0xc0001b80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1420), 0x0488 w01[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4414, sid00:w01, part=1, addr=0xc00001e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1421), 
+Bypassed here
+  mf: uid=  3636, sid04:w01, part=2, addr=0xc0000ee0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1421), 
+Bypassed here
+  mf: uid=  3788, sid08:w03, part=0, addr=0xc0001e60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1421), 0x0488 w03[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4363, sid00:w02, part=4, addr=0xc0000420, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1422), 
+Bypassed here
+  mf: uid=  4023, sid04:w05, part=2, addr=0xc0001460, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1422), 
+Bypassed here
+  mf: uid=  3652, sid06:w01, part=2, addr=0xc0000e00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1422), 
+Bypassed here
+  mf: uid=  3872, sid08:w01, part=3, addr=0xc0001b40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1422), 
+Bypassed here
+  mf: uid=  4014, sid09:w03, part=0, addr=0xc0001e80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1422), 
+Bypassed here
+  mf: uid=  4464, sid00:w03, part=4, addr=0xc0000480, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1423), 
+Bypassed here
+  mf: uid=  4069, sid02:w05, part=2, addr=0xc0000880, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1423), 
+Bypassed here
+  mf: uid=  3967, sid04:w05, part=3, addr=0xc0001500, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1423), 
+Bypassed here
+  mf: uid=  3653, sid06:w01, part=2, addr=0xc0000e20, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1423), 
+Bypassed here
+  mf: uid=  3873, sid08:w01, part=3, addr=0xc0001b60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1423), 
+Bypassed here
+  mf: uid=  4015, sid09:w03, part=0, addr=0xc0001ea0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1423), 
+Bypassed here
+  mf: uid=  4465, sid00:w03, part=4, addr=0xc00004a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1424), 
+Bypassed here
+  mf: uid=  4045, sid02:w04, part=0, addr=0xc0000640, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1424), 
+Bypassed here
+  mf: uid=  3842, sid04:w06, part=4, addr=0xc00016e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1424), 
+Bypassed here
+  mf: uid=  3654, sid06:w01, part=2, addr=0xc0000e40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1424), 
+Bypassed here
+  mf: uid=  3736, sid09:w01, part=3, addr=0xc0001b80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1424), 0x0488 w01[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4466, sid00:w03, part=4, addr=0xc00004c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1425), 
+Bypassed here
+  mf: uid=  4070, sid02:w05, part=2, addr=0xc00008a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1425), 
+Bypassed here
+  mf: uid=  3819, sid04:w03, part=5, addr=0xc0001140, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1425), 
+Bypassed here
+  mf: uid=  3655, sid06:w01, part=2, addr=0xc0000e60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1425), 
+Bypassed here
+  mf: uid=  4490, sid00:w08, part=1, addr=0xc0002580, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1426), 
+Bypassed here
+  mf: uid=  3679, sid02:w02, part=3, addr=0xc00003e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1426), 0x0488 w02[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3766, sid04:w07, part=5, addr=0xc0001760, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1426), 0x0488 w07[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4467, sid00:w03, part=4, addr=0xc00004e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1427), 
+Bypassed here
+  mf: uid=  4046, sid02:w04, part=0, addr=0xc0000660, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1427), 
+Bypassed here
+  mf: uid=  4043, sid04:w07, part=0, addr=0xc0001840, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1427), 
+Bypassed here
+  mf: uid=  4158, sid06:w07, part=5, addr=0xc0001780, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1427), 
+Bypassed here
+  mf: uid=  3953, sid09:w01, part=3, addr=0xc0001b40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1427), 
+Bypassed here
+  mf: uid=  4491, sid00:w08, part=1, addr=0xc00025a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1428), 
+Bypassed here
+  mf: uid=  3559, sid02:w01, part=2, addr=0xc0000280, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1428), 0x0488 w01[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3914, sid04:w04, part=1, addr=0xc00013e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1428), 
+Bypassed here
+  mf: uid=  4159, sid06:w07, part=5, addr=0xc00017a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1428), 
+Bypassed here
+  mf: uid=  3808, sid09:w03, part=0, addr=0xc0001e60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1428), 0x0488 w03[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4071, sid02:w05, part=2, addr=0xc00008c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1429), 
+Bypassed here
+  mf: uid=  3543, sid03:w01, part=2, addr=0xc0000280, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1429), 0x0488 w01[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3968, sid04:w05, part=3, addr=0xc0001520, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1429), 
+Bypassed here
+  mf: uid=  3825, sid06:w07, part=5, addr=0xc0001760, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1429), 0x0488 w07[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3954, sid09:w01, part=3, addr=0xc0001b60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1429), 
+Bypassed here
+  mf: uid=  4080, sid10:w03, part=0, addr=0xc0001e80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1429), 
+Bypassed here
+  mf: uid=  4018, sid02:w04, part=1, addr=0xc0000700, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1430), 
+Bypassed here
+  mf: uid=  4183, sid03:w07, part=5, addr=0xc0000b80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1430), 
+Bypassed here
+  mf: uid=  3611, sid04:w06, part=4, addr=0xc0001600, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1430), 0x0488 w06[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3809, sid10:w01, part=3, addr=0xc0001b80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1430), 0x0488 w01[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4072, sid02:w05, part=2, addr=0xc00008e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1431), 
+Bypassed here
+  mf: uid=  4184, sid03:w07, part=5, addr=0xc0000ba0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1431), 
+Bypassed here
+  mf: uid=  3820, sid04:w03, part=5, addr=0xc0001160, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1431), 
+Bypassed here
+  mf: uid=  3998, sid05:w06, part=4, addr=0xc0001680, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1431), 
+Bypassed here
+  mf: uid=  4081, sid10:w03, part=0, addr=0xc0001ea0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1431), 
+Bypassed here
+  mf: uid=  4096, sid01:w04, part=0, addr=0xc0000640, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1432), 
+Bypassed here
+  mf: uid=  3992, sid02:w02, part=3, addr=0xc0000300, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1432), 
+Bypassed here
+  mf: uid=  4185, sid03:w07, part=5, addr=0xc0000bc0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1432), 
+Bypassed here
+  mf: uid=  4044, sid04:w07, part=0, addr=0xc0001860, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1432), 
+Bypassed here
+  mf: uid=  3999, sid05:w06, part=4, addr=0xc00016a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1432), 
+Bypassed here
+  mf: uid=  3843, sid06:w03, part=5, addr=0xc0001100, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1432), 
+Bypassed here
+  mf: uid=  4097, sid01:w04, part=0, addr=0xc0000660, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1433), 
+Bypassed here
+  mf: uid=  4019, sid02:w04, part=1, addr=0xc0000720, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1433), 
+Bypassed here
+  mf: uid=  4186, sid03:w07, part=5, addr=0xc0000be0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1433), 
+Bypassed here
+  mf: uid=  3707, sid04:w01, part=2, addr=0xc0000e00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1433), 
+Bypassed here
+  mf: uid=  4000, sid05:w06, part=4, addr=0xc00016c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1433), 
+Bypassed here
+  mf: uid=  4116, sid06:w07, part=0, addr=0xc0001800, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1433), 
+Bypassed here
+  mf: uid=  4496, sid12:w06, part=1, addr=0xc0003180, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1433), 0x04c0 w06[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x4c0 (mmul.1.sm_30.ptx:232) ld.global.u32 %r109, [%rd9];
+Bypassed here
+  mf: uid=  3764, sid02:w05, part=2, addr=0xc0000800, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1434), 0x0488 w05[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3969, sid04:w05, part=3, addr=0xc0001540, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1434), 
+Bypassed here
+  mf: uid=  4001, sid05:w06, part=4, addr=0xc00016e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1434), 
+Bypassed here
+  mf: uid=  3844, sid06:w03, part=5, addr=0xc0001120, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1434), 
+Bypassed here
+  mf: uid=  3904, sid10:w03, part=0, addr=0xc0001e60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1434), 0x0488 w03[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4507, sid12:w06, part=1, addr=0xc0003160, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1434), 0x04c0 w06[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x4c0 (mmul.1.sm_30.ptx:232) ld.global.u32 %r109, [%rd9];
+Bypassed here
+  mf: uid=  3993, sid02:w02, part=3, addr=0xc0000320, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1435), 
+Bypassed here
+  mf: uid=  4102, sid03:w05, part=2, addr=0xc0000880, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1435), 
+Bypassed here
+  mf: uid=  3708, sid04:w01, part=2, addr=0xc0000e20, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1435), 
+Bypassed here
+  mf: uid=  4117, sid06:w07, part=0, addr=0xc0001820, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1435), 
+Bypassed here
+  mf: uid=  4148, sid11:w03, part=0, addr=0xc0001e80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1435), 
+Bypassed here
+  mf: uid=  4208, sid02:w07, part=5, addr=0xc0000b80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1436), 
+Bypassed here
+  mf: uid=  4103, sid03:w05, part=2, addr=0xc00008a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1436), 
+Bypassed here
+  mf: uid=  3970, sid04:w05, part=3, addr=0xc0001560, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1436), 
+Bypassed here
+  mf: uid=  4024, sid06:w06, part=4, addr=0xc0001680, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1436), 
+Bypassed here
+  mf: uid=  4149, sid11:w03, part=0, addr=0xc0001ea0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1436), 
+Bypassed here
+  mf: uid=  4020, sid02:w04, part=1, addr=0xc0000740, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1437), 
+Bypassed here
+  mf: uid=  4104, sid03:w05, part=2, addr=0xc00008c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1437), 
+Bypassed here
+  mf: uid=  3709, sid04:w01, part=2, addr=0xc0000e40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1437), 
+Bypassed here
+  mf: uid=  4163, sid05:w04, part=0, addr=0xc00012c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1437), 
+Bypassed here
+  mf: uid=  3845, sid06:w03, part=5, addr=0xc0001140, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1437), 
+Bypassed here
+  mf: uid=  4508, sid13:w05, part=1, addr=0xc0003100, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1437), 0x04c0 w05[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x4c0 (mmul.1.sm_30.ptx:232) ld.global.u32 %r109, [%rd9];
+Bypassed here
+  mf: uid=  3994, sid02:w02, part=3, addr=0xc0000340, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1438), 
+Bypassed here
+  mf: uid=  4105, sid03:w05, part=2, addr=0xc00008e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1438), 
+Bypassed here
+  mf: uid=  3710, sid04:w01, part=2, addr=0xc0000e60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1438), 
+Bypassed here
+  mf: uid=  3767, sid05:w06, part=3, addr=0xc00015e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1438), 0x0488 w06[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4118, sid06:w07, part=0, addr=0xc0001840, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1438), 
+Bypassed here
+  mf: uid=  4130, sid01:w05, part=2, addr=0xc0000880, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1439), 
+Bypassed here
+  mf: uid=  4209, sid02:w07, part=5, addr=0xc0000ba0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1439), 
+Bypassed here
+  mf: uid=  4164, sid05:w04, part=0, addr=0xc00012e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1439), 
+Bypassed here
+  mf: uid=  3768, sid06:w06, part=3, addr=0xc00015e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1439), 0x0488 w06[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3615, sid08:w00, part=2, addr=0xc0001a00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1439), 0x0488 w00[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4613, sid14:w05, part=1, addr=0xc0003100, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1439), 
+Bypassed here
+  mf: uid=  3573, sid01:w01, part=2, addr=0xc0000280, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1440), 0x0488 w01[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4021, sid02:w04, part=1, addr=0xc0000760, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1440), 
+Bypassed here
+  mf: uid=  4025, sid06:w06, part=4, addr=0xc00016a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1440), 
+Bypassed here
+  mf: uid=  4134, sid08:w05, part=3, addr=0xc0002180, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1440), 
+Bypassed here
+  mf: uid=  3982, sid11:w03, part=0, addr=0xc0001e60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1440), 0x0488 w03[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4614, sid14:w05, part=1, addr=0xc0003120, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1440), 
+Bypassed here
+  mf: uid=  4131, sid01:w05, part=2, addr=0xc00008a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1441), 
+Bypassed here
+  mf: uid=  3761, sid02:w01, part=2, addr=0xc0000240, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1441), 
+Bypassed here
+  mf: uid=  4267, sid03:w04, part=0, addr=0xc0000640, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1441), 
+Bypassed here
+  mf: uid=  3846, sid06:w03, part=5, addr=0xc0001160, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1441), 
+Bypassed here
+  mf: uid=  4135, sid08:w05, part=3, addr=0xc00021a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1441), 
+Bypassed here
+  mf: uid=  4615, sid14:w05, part=1, addr=0xc0003140, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1441), 
+Bypassed here
+  mf: uid=  4061, sid01:w04, part=1, addr=0xc0000700, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1442), 
+Bypassed here
+  mf: uid=  3995, sid02:w02, part=3, addr=0xc0000360, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1442), 
+Bypassed here
+  mf: uid=  4268, sid03:w04, part=0, addr=0xc0000660, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1442), 
+Bypassed here
+  mf: uid=  4119, sid06:w07, part=0, addr=0xc0001860, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1442), 
+Bypassed here
+  mf: uid=  4136, sid08:w05, part=3, addr=0xc00021c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1442), 
+Bypassed here
+  mf: uid=  4616, sid14:w05, part=1, addr=0xc0003160, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1442), 
+Bypassed here
+  mf: uid=  4396, sid00:w04, part=0, addr=0xc0000640, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1443), 
+Bypassed here
+  mf: uid=  4132, sid01:w05, part=2, addr=0xc00008c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1443), 
+Bypassed here
+  mf: uid=  3624, sid02:w03, part=5, addr=0xc0000560, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1443), 0x0488 w03[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3713, sid03:w02, part=3, addr=0xc00003e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1443), 0x0488 w02[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4026, sid06:w06, part=4, addr=0xc00016c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1443), 
+Bypassed here
+  mf: uid=  4282, sid08:w07, part=0, addr=0xc0002480, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1443), 
+Bypassed here
+  mf: uid=  4636, sid13:w07, part=4, addr=0xc0003400, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1443), 
+Bypassed here
+  mf: uid=  4397, sid00:w04, part=0, addr=0xc0000660, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1444), 
+Bypassed here
+  mf: uid=  4062, sid01:w04, part=1, addr=0xc0000720, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1444), 
+Bypassed here
+  mf: uid=  4210, sid02:w07, part=5, addr=0xc0000bc0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1444), 
+Bypassed here
+  mf: uid=  3897, sid03:w03, part=5, addr=0xc0000580, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1444), 
+Bypassed here
+  mf: uid=  4027, sid06:w06, part=4, addr=0xc00016e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1444), 
+Bypassed here
+  mf: uid=  4137, sid08:w05, part=3, addr=0xc00021e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1444), 
+Bypassed here
+  mf: uid=  4047, sid10:w01, part=3, addr=0xc0001b40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1444), 
+Bypassed here
+  mf: uid=  4628, sid13:w06, part=1, addr=0xc0003180, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1444), 
+Bypassed here
+  mf: uid=  4133, sid01:w05, part=2, addr=0xc00008e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1445), 
+Bypassed here
+  mf: uid=  3762, sid02:w01, part=2, addr=0xc0000260, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1445), 
+Bypassed here
+  mf: uid=  3898, sid03:w03, part=5, addr=0xc00005a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1445), 
+Bypassed here
+  mf: uid=  3851, sid08:w06, part=4, addr=0xc0002280, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1445), 0x0488 w06[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4048, sid10:w01, part=3, addr=0xc0001b60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1445), 
+Bypassed here
+  mf: uid=  4375, sid12:w01, part=0, addr=0xc0002a80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1445), 0x04c0 w01[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x4c0 (mmul.1.sm_30.ptx:232) ld.global.u32 %r109, [%rd9];
+Bypassed here
+  mf: uid=  4637, sid13:w07, part=4, addr=0xc0003420, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1445), 
+Bypassed here
+  mf: uid=  4063, sid01:w04, part=1, addr=0xc0000740, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1446), 
+Bypassed here
+  mf: uid=  3822, sid02:w06, part=3, addr=0xc0000980, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1446), 0x0488 w06[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3779, sid03:w01, part=2, addr=0xc0000240, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1446), 
+Bypassed here
+  mf: uid=  3751, sid05:w06, part=4, addr=0xc0001600, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1446), 0x0488 w06[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4283, sid08:w07, part=0, addr=0xc00024a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1446), 
+Bypassed here
+  mf: uid=  3905, sid11:w01, part=3, addr=0xc0001b80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1446), 0x0488 w01[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4427, sid12:w01, part=0, addr=0xc0002a40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1446), 
+Bypassed here
+  mf: uid=  4629, sid13:w06, part=1, addr=0xc00031a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1446), 
+Bypassed here
+  mf: uid=  4643, sid14:w07, part=4, addr=0xc0003400, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1446), 
+Bypassed here
+  mf: uid=  4064, sid01:w04, part=1, addr=0xc0000760, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1447), 
+Bypassed here
+  mf: uid=  4211, sid02:w07, part=5, addr=0xc0000be0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1447), 
+Bypassed here
+  mf: uid=  3765, sid03:w05, part=2, addr=0xc0000800, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1447), 0x0488 w05[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3698, sid05:w03, part=5, addr=0xc00011e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1447), 0x0488 w03[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3752, sid06:w06, part=4, addr=0xc0001600, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1447), 0x0488 w06[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3920, sid08:w05, part=3, addr=0xc0002100, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1447), 0x0488 w05[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4428, sid12:w01, part=0, addr=0xc0002a60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1447), 
+Bypassed here
+  mf: uid=  4630, sid13:w06, part=1, addr=0xc00031c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1447), 
+Bypassed here
+  mf: uid=  4644, sid14:w07, part=4, addr=0xc0003420, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1447), 
+Bypassed here
+  mf: uid=  3936, sid01:w03, part=5, addr=0xc0000580, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1448), 
+Bypassed here
+  mf: uid=  4098, sid02:w05, part=1, addr=0xc00007c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1448), 
+Bypassed here
+  mf: uid=  4082, sid03:w02, part=3, addr=0xc0000300, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1448), 
+Bypassed here
+  mf: uid=  3878, sid08:w06, part=4, addr=0xc0002260, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1448), 0x0488 w06[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4169, sid09:w04, part=2, addr=0xc0002000, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1448), 
+Bypassed here
+  mf: uid=  4451, sid13:w01, part=0, addr=0xc0002a80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1448), 
+Bypassed here
+  mf: uid=  4645, sid14:w07, part=4, addr=0xc0003440, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1448), 
+Bypassed here
+  mf: uid=  3937, sid01:w03, part=5, addr=0xc00005a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1449), 
+Bypassed here
+  mf: uid=  3848, sid02:w06, part=3, addr=0xc0000960, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1449), 0x0488 w06[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4232, sid03:w07, part=5, addr=0xc0000b00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1449), 
+Bypassed here
+  mf: uid=  4284, sid08:w07, part=0, addr=0xc00024c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1449), 
+Bypassed here
+  mf: uid=  4170, sid09:w04, part=2, addr=0xc0002020, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1449), 
+Bypassed here
+  mf: uid=  4631, sid13:w06, part=1, addr=0xc00031e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1449), 
+Bypassed here
+  mf: uid=  4646, sid14:w07, part=4, addr=0xc0003460, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1449), 
+Bypassed here
+  mf: uid=  4138, sid02:w06, part=4, addr=0xc0000a00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1450), 
+Bypassed here
+  mf: uid=  3780, sid03:w01, part=2, addr=0xc0000260, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1450), 
+Bypassed here
+  mf: uid=  4196, sid05:w05, part=3, addr=0xc0001500, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1450), 
+Bypassed here
+  mf: uid=  4285, sid08:w07, part=0, addr=0xc00024e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1450), 
+Bypassed here
+  mf: uid=  4171, sid09:w04, part=2, addr=0xc0002040, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1450), 
+Bypassed here
+  mf: uid=  4452, sid13:w01, part=0, addr=0xc0002aa0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1450), 
+Bypassed here
+  mf: uid=  4584, sid14:w06, part=1, addr=0xc00031e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1450), 0x04c0 w06[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x4c0 (mmul.1.sm_30.ptx:232) ld.global.u32 %r109, [%rd9];
+Bypassed here
+  mf: uid=  4099, sid02:w05, part=1, addr=0xc00007e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1451), 
+Bypassed here
+  mf: uid=  4083, sid03:w02, part=3, addr=0xc0000320, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1451), 
+Bypassed here
+  mf: uid=  3798, sid05:w01, part=2, addr=0xc0000ec0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1451), 
+Bypassed here
+  mf: uid=  4302, sid08:w07, part=0, addr=0xc0002400, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1451), 
+Bypassed here
+  mf: uid=  4172, sid09:w04, part=2, addr=0xc0002060, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1451), 
+Bypassed here
+  mf: uid=  4453, sid13:w01, part=0, addr=0xc0002ac0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1451), 
+Bypassed here
+  mf: uid=  3729, sid01:w05, part=2, addr=0xc0000800, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1452), 0x0488 w05[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4139, sid02:w06, part=4, addr=0xc0000a20, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1452), 
+Bypassed here
+  mf: uid=  3663, sid03:w03, part=5, addr=0xc0000560, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1452), 0x0488 w03[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4197, sid05:w05, part=3, addr=0xc0001520, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1452), 
+Bypassed here
+  mf: uid=  4303, sid08:w07, part=0, addr=0xc0002420, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1452), 
+Bypassed here
+  mf: uid=  4454, sid13:w01, part=0, addr=0xc0002ae0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1452), 
+Bypassed here
+  mf: uid=  4140, sid02:w06, part=4, addr=0xc0000a40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1453), 
+Bypassed here
+  mf: uid=  4233, sid03:w07, part=5, addr=0xc0000b20, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1453), 
+Bypassed here
+  mf: uid=  3975, sid05:w03, part=5, addr=0xc0001100, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1453), 
+Bypassed here
+  mf: uid=  4194, sid08:w05, part=2, addr=0xc00020c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1453), 
+Bypassed here
+  mf: uid=  4410, sid13:w01, part=0, addr=0xc0002a00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1453), 0x04c0 w01[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x4c0 (mmul.1.sm_30.ptx:232) ld.global.u32 %r109, [%rd9];
+Bypassed here
+  mf: uid=  4242, sid02:w07, part=5, addr=0xc0000b00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1454), 
+Bypassed here
+  mf: uid=  4084, sid03:w02, part=3, addr=0xc0000340, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1454), 
+Bypassed here
+  mf: uid=  4315, sid05:w07, part=0, addr=0xc0001800, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1454), 
+Bypassed here
+  mf: uid=  4195, sid08:w05, part=2, addr=0xc00020e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1454), 
+Bypassed here
+  mf: uid=  4510, sid14:w01, part=0, addr=0xc0002ac0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1454), 
+Bypassed here
+  mf: uid=  4141, sid02:w06, part=4, addr=0xc0000a60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1455), 
+Bypassed here
+  mf: uid=  4085, sid03:w02, part=3, addr=0xc0000360, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1455), 
+Bypassed here
+  mf: uid=  4122, sid05:w04, part=1, addr=0xc0001380, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1455), 
+Bypassed here
+  mf: uid=  4218, sid10:w04, part=2, addr=0xc0002000, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1455), 
+Bypassed here
+  mf: uid=  4511, sid14:w01, part=0, addr=0xc0002ae0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1455), 
+Bypassed here
+  mf: uid=  4226, sid01:w06, part=4, addr=0xc0000a00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1456), 
+Bypassed here
+  mf: uid=  4243, sid02:w07, part=5, addr=0xc0000b20, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1456), 
+Bypassed here
+  mf: uid=  3799, sid05:w01, part=2, addr=0xc0000ee0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1456), 
+Bypassed here
+  mf: uid=  4219, sid10:w04, part=2, addr=0xc0002020, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1456), 
+Bypassed here
+  mf: uid=  4106, sid11:w01, part=3, addr=0xc0001b40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1456), 
+Bypassed here
+  mf: uid=  4522, sid14:w01, part=0, addr=0xc0002a00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1456), 
+Bypassed here
+  mf: uid=  4227, sid01:w06, part=4, addr=0xc0000a20, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1457), 
+Bypassed here
+  mf: uid=  4198, sid05:w05, part=3, addr=0xc0001540, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1457), 
+Bypassed here
+  mf: uid=  4294, sid09:w06, part=5, addr=0xc0002300, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1457), 
+Bypassed here
+  mf: uid=  4220, sid10:w04, part=2, addr=0xc0002040, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1457), 
+Bypassed here
+  mf: uid=  4107, sid11:w01, part=3, addr=0xc0001b60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1457), 
+Bypassed here
+  mf: uid=  4523, sid14:w01, part=0, addr=0xc0002a20, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1457), 
+Bypassed here
+  mf: uid=  4277, sid00:w02, part=3, addr=0xc00003e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1458), 0x0488 w02[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4228, sid01:w06, part=4, addr=0xc0000a40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1458), 
+Bypassed here
+  mf: uid=  3976, sid05:w03, part=5, addr=0xc0001120, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1458), 
+Bypassed here
+  mf: uid=  3686, sid09:w00, part=2, addr=0xc0001a00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1458), 0x0488 w00[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4221, sid10:w04, part=2, addr=0xc0002060, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1458), 
+Bypassed here
+  mf: uid=  4524, sid14:w01, part=0, addr=0xc0002a40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1458), 
+Bypassed here
+  mf: uid=  4379, sid00:w02, part=3, addr=0xc0000300, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1459), 
+Bypassed here
+  mf: uid=  3837, sid01:w01, part=2, addr=0xc0000240, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1459), 
+Bypassed here
+  mf: uid=  4316, sid05:w07, part=0, addr=0xc0001820, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1459), 
+Bypassed here
+  mf: uid=  4295, sid09:w06, part=5, addr=0xc0002320, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1459), 
+Bypassed here
+  mf: uid=  4525, sid14:w01, part=0, addr=0xc0002a60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1459), 
+Bypassed here
+  mf: uid=  4556, sid00:w09, part=0, addr=0xc0002a80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1460), 0x04c0 w09[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x4c0 (mmul.1.sm_30.ptx:232) ld.global.u32 %r109, [%rd9];
+Bypassed here
+  mf: uid=  4229, sid01:w06, part=4, addr=0xc0000a60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1460), 
+Bypassed here
+  mf: uid=  4123, sid05:w04, part=1, addr=0xc00013a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1460), 
+Bypassed here
+  mf: uid=  4296, sid09:w06, part=5, addr=0xc0002340, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1460), 
+Bypassed here
+  mf: uid=  4380, sid00:w02, part=3, addr=0xc0000320, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1461), 
+Bypassed here
+  mf: uid=  3838, sid01:w01, part=2, addr=0xc0000260, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1461), 
+Bypassed here
+  mf: uid=  3849, sid03:w07, part=4, addr=0xc0000ae0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1461), 0x0488 w07[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3850, sid05:w05, part=2, addr=0xc0001480, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1461), 0x0488 w05[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4297, sid09:w06, part=5, addr=0xc0002360, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1461), 
+Bypassed here
+  mf: uid=  4617, sid00:w09, part=0, addr=0xc0002a40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1462), 
+Bypassed here
+  mf: uid=  4308, sid01:w07, part=5, addr=0xc0000b80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1462), 
+Bypassed here
+  mf: uid=  3917, sid02:w07, part=4, addr=0xc0000ae0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1462), 0x0488 w07[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4199, sid05:w05, part=3, addr=0xc0001560, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1462), 
+Bypassed here
+  mf: uid=  4254, sid08:w04, part=2, addr=0xc0002000, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1462), 
+Bypassed here
+  mf: uid=  4660, sid00:w13, part=1, addr=0xc0003180, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1463), 0x04c0 w13[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x4c0 (mmul.1.sm_30.ptx:232) ld.global.u32 %r109, [%rd9];
+Bypassed here
+  mf: uid=  4309, sid01:w07, part=5, addr=0xc0000ba0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1463), 
+Bypassed here
+  mf: uid=  4290, sid03:w06, part=4, addr=0xc0000a00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1463), 
+Bypassed here
+  mf: uid=  3977, sid05:w03, part=5, addr=0xc0001140, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1463), 
+Bypassed here
+  mf: uid=  4255, sid08:w04, part=2, addr=0xc0002020, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1463), 
+Bypassed here
+  mf: uid=  4222, sid09:w05, part=3, addr=0xc0002180, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1463), 
+Bypassed here
+  mf: uid=  4381, sid00:w02, part=3, addr=0xc0000340, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1464), 
+Bypassed here
+  mf: uid=  4310, sid01:w07, part=5, addr=0xc0000bc0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1464), 
+Bypassed here
+  mf: uid=  4291, sid03:w06, part=4, addr=0xc0000a20, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1464), 
+Bypassed here
+  mf: uid=  4317, sid05:w07, part=0, addr=0xc0001840, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1464), 
+Bypassed here
+  mf: uid=  4256, sid08:w04, part=2, addr=0xc0002040, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1464), 
+Bypassed here
+  mf: uid=  4223, sid09:w05, part=3, addr=0xc00021a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1464), 
+Bypassed here
+  mf: uid=  4681, sid00:w15, part=4, addr=0xc0003480, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1465), 
+Bypassed here
+  mf: uid=  4311, sid01:w07, part=5, addr=0xc0000be0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1465), 
+Bypassed here
+  mf: uid=  4292, sid03:w06, part=4, addr=0xc0000a40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1465), 
+Bypassed here
+  mf: uid=  4124, sid05:w04, part=1, addr=0xc00013c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1465), 
+Bypassed here
+  mf: uid=  4257, sid08:w04, part=2, addr=0xc0002060, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1465), 
+Bypassed here
+  mf: uid=  4224, sid09:w05, part=3, addr=0xc00021c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1465), 
+Bypassed here
+  mf: uid=  4618, sid00:w09, part=0, addr=0xc0002a60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1466), 
+Bypassed here
+  mf: uid=  4293, sid03:w06, part=4, addr=0xc0000a60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1466), 
+Bypassed here
+  mf: uid=  3868, sid05:w01, part=2, addr=0xc0000e00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1466), 
+Bypassed here
+  mf: uid=  4053, sid08:w07, part=5, addr=0xc00023e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1466), 0x0488 w07[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4271, sid09:w05, part=2, addr=0xc00020c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1466), 
+Bypassed here
+  mf: uid=  4674, sid00:w13, part=1, addr=0xc0003140, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1467), 
+Bypassed here
+  mf: uid=  4333, sid01:w07, part=5, addr=0xc0000b00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1467), 
+Bypassed here
+  mf: uid=  3978, sid05:w03, part=5, addr=0xc0001160, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1467), 
+Bypassed here
+  mf: uid=  4225, sid09:w05, part=3, addr=0xc00021e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1467), 
+Bypassed here
+  mf: uid=  4382, sid00:w02, part=3, addr=0xc0000360, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1468), 
+Bypassed here
+  mf: uid=  3783, sid01:w06, part=3, addr=0xc0000980, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1468), 0x0488 w06[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4318, sid05:w07, part=0, addr=0xc0001860, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1468), 
+Bypassed here
+  mf: uid=  4002, sid08:w03, part=5, addr=0xc0001d80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1468), 
+Bypassed here
+  mf: uid=  4054, sid09:w06, part=4, addr=0xc0002280, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1468), 0x0488 w06[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4682, sid00:w15, part=4, addr=0xc00034a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1469), 
+Bypassed here
+  mf: uid=  4334, sid01:w07, part=5, addr=0xc0000b20, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1469), 
+Bypassed here
+  mf: uid=  4125, sid05:w04, part=1, addr=0xc00013e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1469), 
+Bypassed here
+  mf: uid=  4003, sid08:w03, part=5, addr=0xc0001da0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1469), 
+Bypassed here
+  mf: uid=  4323, sid09:w07, part=0, addr=0xc0002480, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1469), 
+Bypassed here
+  mf: uid=  4577, sid12:w07, part=3, addr=0xc0003380, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1469), 
+Bypassed here
+  mf: uid=  4675, sid00:w13, part=1, addr=0xc0003160, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1470), 
+Bypassed here
+  mf: uid=  4165, sid03:w05, part=1, addr=0xc00007c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1470), 
+Bypassed here
+  mf: uid=  3869, sid05:w01, part=2, addr=0xc0000e20, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1470), 
+Bypassed here
+  mf: uid=  4004, sid08:w03, part=5, addr=0xc0001dc0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1470), 
+Bypassed here
+  mf: uid=  4272, sid09:w05, part=2, addr=0xc00020e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1470), 
+Bypassed here
+  mf: uid=  4578, sid12:w07, part=3, addr=0xc00033a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1470), 
+Bypassed here
+  mf: uid=  4670, sid00:w15, part=4, addr=0xc0003460, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1471), 0x04c0 w15[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x4c0 (mmul.1.sm_30.ptx:232) ld.global.u32 %r109, [%rd9];
+Bypassed here
+  mf: uid=  4166, sid03:w05, part=1, addr=0xc00007e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1471), 
+Bypassed here
+  mf: uid=  4341, sid05:w07, part=5, addr=0xc0001780, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1471), 
+Bypassed here
+  mf: uid=  4005, sid08:w03, part=5, addr=0xc0001de0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1471), 
+Bypassed here
+  mf: uid=  3980, sid09:w05, part=3, addr=0xc0002100, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1471), 0x0488 w05[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4286, sid11:w04, part=2, addr=0xc0002000, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1471), 
+Bypassed here
+  mf: uid=  4579, sid12:w07, part=3, addr=0xc00033c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1471), 
+Bypassed here
+  mf: uid=  3639, sid01:w03, part=5, addr=0xc0000560, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1472), 0x0488 w03[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3870, sid05:w01, part=2, addr=0xc0000e40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1472), 
+Bypassed here
+  mf: uid=  4075, sid09:w06, part=4, addr=0xc0002260, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1472), 0x0488 w06[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4273, sid10:w05, part=3, addr=0xc0002180, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1472), 
+Bypassed here
+  mf: uid=  4287, sid11:w04, part=2, addr=0xc0002020, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1472), 
+Bypassed here
+  mf: uid=  4580, sid12:w07, part=3, addr=0xc00033e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1472), 
+Bypassed here
+  mf: uid=  3874, sid01:w07, part=4, addr=0xc0000ae0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1473), 0x0488 w07[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4342, sid05:w07, part=5, addr=0xc00017a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1473), 
+Bypassed here
+  mf: uid=  4086, sid09:w03, part=5, addr=0xc0001d80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1473), 
+Bypassed here
+  mf: uid=  4274, sid10:w05, part=3, addr=0xc00021a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1473), 
+Bypassed here
+  mf: uid=  4288, sid11:w04, part=2, addr=0xc0002040, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1473), 
+Bypassed here
+  mf: uid=  4585, sid12:w07, part=3, addr=0xc0003300, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1473), 
+Bypassed here
+  mf: uid=  3871, sid05:w01, part=2, addr=0xc0000e60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1474), 
+Bypassed here
+  mf: uid=  4324, sid09:w07, part=0, addr=0xc00024a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1474), 
+Bypassed here
+  mf: uid=  4143, sid10:w06, part=4, addr=0xc0002280, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1474), 0x0488 w06[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4289, sid11:w04, part=2, addr=0xc0002060, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1474), 
+Bypassed here
+  mf: uid=  4586, sid12:w07, part=3, addr=0xc0003320, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1474), 
+Bypassed here
+  mf: uid=  4306, sid05:w05, part=2, addr=0xc0001440, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1475), 
+Bypassed here
+  mf: uid=  3889, sid08:w01, part=2, addr=0xc0001a80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1475), 
+Bypassed here
+  mf: uid=  4181, sid09:w04, part=1, addr=0xc0001f40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1475), 
+Bypassed here
+  mf: uid=  4349, sid10:w06, part=5, addr=0xc0002300, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1475), 
+Bypassed here
+  mf: uid=  4575, sid13:w07, part=3, addr=0xc00033e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1475), 0x04c0 w07[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x4c0 (mmul.1.sm_30.ptx:232) ld.global.u32 %r109, [%rd9];
+Bypassed here
+  mf: uid=  4307, sid05:w05, part=2, addr=0xc0001460, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1476), 
+Bypassed here
+  mf: uid=  3890, sid08:w01, part=2, addr=0xc0001aa0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1476), 
+Bypassed here
+  mf: uid=  4087, sid09:w03, part=5, addr=0xc0001da0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1476), 
+Bypassed here
+  mf: uid=  4275, sid10:w05, part=3, addr=0xc00021c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1476), 
+Bypassed here
+  mf: uid=  4639, sid13:w07, part=3, addr=0xc0003300, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1476), 
+Bypassed here
+  mf: uid=  3891, sid08:w01, part=2, addr=0xc0001ac0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1477), 
+Bypassed here
+  mf: uid=  4325, sid09:w07, part=0, addr=0xc00024c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1477), 
+Bypassed here
+  mf: uid=  4160, sid10:w06, part=4, addr=0xc0002260, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1477), 0x0488 w06[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4640, sid13:w07, part=3, addr=0xc0003320, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1477), 
+Bypassed here
+  mf: uid=  3892, sid08:w01, part=2, addr=0xc0001ae0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1478), 
+Bypassed here
+  mf: uid=  4182, sid09:w04, part=1, addr=0xc0001f60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1478), 
+Bypassed here
+  mf: uid=  4350, sid10:w06, part=5, addr=0xc0002320, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1478), 
+Bypassed here
+  mf: uid=  4215, sid11:w06, part=4, addr=0xc0002280, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1478), 0x0488 w06[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4641, sid13:w07, part=3, addr=0xc0003340, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1478), 
+Bypassed here
+  mf: uid=  4192, sid01:w05, part=1, addr=0xc00007c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1479), 
+Bypassed here
+  mf: uid=  4088, sid09:w03, part=5, addr=0xc0001dc0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1479), 
+Bypassed here
+  mf: uid=  3755, sid10:w00, part=2, addr=0xc0001a00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1479), 0x0488 w00[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4236, sid11:w06, part=4, addr=0xc0002260, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1479), 0x0488 w06[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4642, sid13:w07, part=3, addr=0xc0003360, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1479), 
+Bypassed here
+  mf: uid=  4419, sid00:w06, part=4, addr=0xc0000a00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1480), 
+Bypassed here
+  mf: uid=  4193, sid01:w05, part=1, addr=0xc00007e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1480), 
+Bypassed here
+  mf: uid=  4326, sid09:w07, part=0, addr=0xc00024e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1480), 
+Bypassed here
+  mf: uid=  4327, sid10:w05, part=2, addr=0xc00020c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1480), 
+Bypassed here
+  mf: uid=  3829, sid11:w00, part=2, addr=0xc0001a00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1480), 0x0488 w00[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4648, sid14:w07, part=3, addr=0xc0003380, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1480), 
+Bypassed here
+  mf: uid=  4339, sid00:w00, part=0, addr=0xc00000c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1481), 
+Bypassed here
+  mf: uid=  3988, sid09:w01, part=2, addr=0xc0001a80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1481), 
+Bypassed here
+  mf: uid=  4276, sid10:w05, part=3, addr=0xc00021e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1481), 
+Bypassed here
+  mf: uid=  4649, sid14:w07, part=3, addr=0xc00033a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1481), 
+Bypassed here
+  mf: uid=  4420, sid00:w06, part=4, addr=0xc0000a20, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1482), 
+Bypassed here
+  mf: uid=  3802, sid01:w06, part=3, addr=0xc0000960, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1482), 0x0488 w06[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4089, sid09:w03, part=5, addr=0xc0001de0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1482), 
+Bypassed here
+  mf: uid=  4351, sid10:w06, part=5, addr=0xc0002340, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1482), 
+Bypassed here
+  mf: uid=  4608, sid14:w07, part=3, addr=0xc0003360, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1482), 0x04c0 w07[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x4c0 (mmul.1.sm_30.ptx:232) ld.global.u32 %r109, [%rd9];
+Bypassed here
+  mf: uid=  4340, sid00:w00, part=0, addr=0xc00000e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1483), 
+Bypassed here
+  mf: uid=  3938, sid03:w06, part=3, addr=0xc0000980, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1483), 0x0488 w06[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  3989, sid09:w01, part=2, addr=0xc0001aa0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1483), 
+Bypassed here
+  mf: uid=  4238, sid10:w04, part=1, addr=0xc0001f40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1483), 
+Bypassed here
+  mf: uid=  4683, sid00:w15, part=3, addr=0xc0003380, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1484), 
+Bypassed here
+  mf: uid=  4108, sid09:w02, part=5, addr=0xc0001d00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1484), 
+Bypassed here
+  mf: uid=  4328, sid10:w05, part=2, addr=0xc00020e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1484), 
+Bypassed here
+  mf: uid=  4421, sid00:w06, part=4, addr=0xc0000a40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1485), 
+Bypassed here
+  mf: uid=  4347, sid09:w07, part=0, addr=0xc0002400, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1485), 
+Bypassed here
+  mf: uid=  4076, sid10:w05, part=3, addr=0xc0002100, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1485), 0x0488 w05[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4357, sid11:w05, part=2, addr=0xc00020c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1485), 
+Bypassed here
+  mf: uid=  4684, sid00:w15, part=3, addr=0xc00033a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1486), 
+Bypassed here
+  mf: uid=  3990, sid09:w01, part=2, addr=0xc0001ac0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1486), 
+Bypassed here
+  mf: uid=  4352, sid10:w06, part=5, addr=0xc0002360, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1486), 
+Bypassed here
+  mf: uid=  4329, sid11:w05, part=3, addr=0xc0002180, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1486), 
+Bypassed here
+  mf: uid=  4422, sid00:w06, part=4, addr=0xc0000a60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1487), 
+Bypassed here
+  mf: uid=  3939, sid05:w07, part=5, addr=0xc0001760, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1487), 0x0488 w07[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4109, sid09:w02, part=5, addr=0xc0001d20, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1487), 
+Bypassed here
+  mf: uid=  4239, sid10:w04, part=1, addr=0xc0001f60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1487), 
+Bypassed here
+  mf: uid=  4358, sid11:w05, part=2, addr=0xc00020e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1487), 
+Bypassed here
+  mf: uid=  4685, sid00:w15, part=3, addr=0xc00033c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1488), 
+Bypassed here
+  mf: uid=  4250, sid03:w04, part=1, addr=0xc0000700, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1488), 
+Bypassed here
+  mf: uid=  4142, sid09:w07, part=5, addr=0xc00023e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1488), 0x0488 w07[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4154, sid10:w03, part=5, addr=0xc0001d80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1488), 
+Bypassed here
+  mf: uid=  4330, sid11:w05, part=3, addr=0xc00021a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1488), 
+Bypassed here
+  mf: uid=  4512, sid12:w04, part=4, addr=0xc0002e40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1488), 
+Bypassed here
+  mf: uid=  4686, sid00:w15, part=3, addr=0xc00033e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1489), 
+Bypassed here
+  mf: uid=  4251, sid03:w04, part=1, addr=0xc0000720, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1489), 
+Bypassed here
+  mf: uid=  4348, sid09:w07, part=0, addr=0xc0002420, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1489), 
+Bypassed here
+  mf: uid=  4155, sid10:w03, part=5, addr=0xc0001da0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1489), 
+Bypassed here
+  mf: uid=  4370, sid11:w06, part=5, addr=0xc0002300, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1489), 
+Bypassed here
+  mf: uid=  4442, sid12:w02, part=2, addr=0xc0002c00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1489), 
+Bypassed here
+  mf: uid=  4355, sid00:w00, part=0, addr=0xc0000000, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1490), 
+Bypassed here
+  mf: uid=  4252, sid03:w04, part=1, addr=0xc0000740, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1490), 
+Bypassed here
+  mf: uid=  3991, sid09:w01, part=2, addr=0xc0001ae0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1490), 
+Bypassed here
+  mf: uid=  4156, sid10:w03, part=5, addr=0xc0001dc0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1490), 
+Bypassed here
+  mf: uid=  4331, sid11:w05, part=3, addr=0xc00021c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1490), 
+Bypassed here
+  mf: uid=  4513, sid12:w04, part=4, addr=0xc0002e60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1490), 
+Bypassed here
+  mf: uid=  4687, sid00:w14, part=3, addr=0xc0003300, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1491), 
+Bypassed here
+  mf: uid=  4253, sid03:w04, part=1, addr=0xc0000760, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1491), 
+Bypassed here
+  mf: uid=  4065, sid10:w01, part=2, addr=0xc0001a80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1491), 
+Bypassed here
+  mf: uid=  4371, sid11:w06, part=5, addr=0xc0002320, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1491), 
+Bypassed here
+  mf: uid=  4443, sid12:w02, part=2, addr=0xc0002c20, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1491), 
+Bypassed here
+  mf: uid=  4570, sid14:w03, part=4, addr=0xc0002e00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1491), 
+Bypassed here
+  mf: uid=  4356, sid00:w00, part=0, addr=0xc0000020, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1492), 
+Bypassed here
+  mf: uid=  4269, sid08:w04, part=1, addr=0xc0001f40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1492), 
+Bypassed here
+  mf: uid=  4157, sid10:w03, part=5, addr=0xc0001de0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1492), 
+Bypassed here
+  mf: uid=  4332, sid11:w05, part=3, addr=0xc00021e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1492), 
+Bypassed here
+  mf: uid=  4482, sid13:w02, part=2, addr=0xc0002c00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1492), 
+Bypassed here
+  mf: uid=  4571, sid14:w03, part=4, addr=0xc0002e20, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1492), 
+Bypassed here
+  mf: uid=  4688, sid00:w14, part=3, addr=0xc0003320, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1493), 
+Bypassed here
+  mf: uid=  3955, sid03:w06, part=3, addr=0xc0000960, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1493), 0x0488 w06[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4270, sid08:w04, part=1, addr=0xc0001f60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1493), 
+Bypassed here
+  mf: uid=  4366, sid10:w07, part=0, addr=0xc0002480, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1493), 
+Bypassed here
+  mf: uid=  4372, sid11:w06, part=5, addr=0xc0002340, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1493), 
+Bypassed here
+  mf: uid=  4483, sid13:w02, part=2, addr=0xc0002c20, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1493), 
+Bypassed here
+  mf: uid=  4468, sid00:w07, part=4, addr=0xc0000ae0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1494), 0x0488 w07[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4066, sid10:w01, part=2, addr=0xc0001aa0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1494), 
+Bypassed here
+  mf: uid=  4304, sid11:w04, part=1, addr=0xc0001f40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1494), 
+Bypassed here
+  mf: uid=  4484, sid13:w02, part=2, addr=0xc0002c40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1494), 
+Bypassed here
+  mf: uid=  4173, sid10:w02, part=5, addr=0xc0001d00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1495), 
+Bypassed here
+  mf: uid=  4161, sid11:w05, part=3, addr=0xc0002100, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1495), 0x0488 w05[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4591, sid13:w04, part=4, addr=0xc0002e80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1495), 
+Bypassed here
+  mf: uid=  4364, sid00:w06, part=3, addr=0xc0000980, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1496), 0x0488 w06[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4367, sid10:w07, part=0, addr=0xc00024a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1496), 
+Bypassed here
+  mf: uid=  4373, sid11:w06, part=5, addr=0xc0002360, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1496), 
+Bypassed here
+  mf: uid=  4485, sid13:w02, part=2, addr=0xc0002c60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1496), 
+Bypassed here
+  mf: uid=  4374, sid00:w06, part=3, addr=0xc0000960, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1497), 0x0488 w06[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4067, sid10:w01, part=2, addr=0xc0001ac0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1497), 
+Bypassed here
+  mf: uid=  4305, sid11:w04, part=1, addr=0xc0001f60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1497), 
+Bypassed here
+  mf: uid=  4492, sid12:w03, part=2, addr=0xc0002c80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1497), 
+Bypassed here
+  mf: uid=  4592, sid13:w04, part=4, addr=0xc0002ea0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1497), 
+Bypassed here
+  mf: uid=  4385, sid00:w04, part=1, addr=0xc0000700, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1498), 
+Bypassed here
+  mf: uid=  4174, sid10:w02, part=5, addr=0xc0001d20, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1498), 
+Bypassed here
+  mf: uid=  4473, sid12:w03, part=3, addr=0xc0002d80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1498), 
+Bypassed here
+  mf: uid=  4606, sid14:w04, part=4, addr=0xc0002ec0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1498), 
+Bypassed here
+  mf: uid=  4386, sid00:w04, part=1, addr=0xc0000720, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1499), 
+Bypassed here
+  mf: uid=  4214, sid10:w07, part=5, addr=0xc00023e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1499), 0x0488 w07[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4204, sid11:w03, part=5, addr=0xc0001d80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1499), 
+Bypassed here
+  mf: uid=  4493, sid12:w03, part=2, addr=0xc0002ca0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1499), 
+Bypassed here
+  mf: uid=  4607, sid14:w04, part=4, addr=0xc0002ee0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1499), 
+Bypassed here
+  mf: uid=  4661, sid00:w11, part=4, addr=0xc0002e00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1500), 
+Bypassed here
+  mf: uid=  4368, sid10:w07, part=0, addr=0xc00024c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1500), 
+Bypassed here
+  mf: uid=  4279, sid11:w07, part=5, addr=0xc00023e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1500), 0x0488 w07[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4474, sid12:w03, part=3, addr=0xc0002da0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1500), 
+Bypassed here
+  mf: uid=  4387, sid00:w04, part=1, addr=0xc0000740, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1501), 
+Bypassed here
+  mf: uid=  4068, sid10:w01, part=2, addr=0xc0001ae0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1501), 
+Bypassed here
+  mf: uid=  4205, sid11:w03, part=5, addr=0xc0001da0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1501), 
+Bypassed here
+  mf: uid=  4503, sid12:w04, part=5, addr=0xc0002f00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1501), 
+Bypassed here
+  mf: uid=  4662, sid00:w11, part=4, addr=0xc0002e20, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1502), 
+Bypassed here
+  mf: uid=  4369, sid10:w07, part=0, addr=0xc00024e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1502), 
+Bypassed here
+  mf: uid=  4206, sid11:w03, part=5, addr=0xc0001dc0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1502), 
+Bypassed here
+  mf: uid=  3924, sid12:w00, part=2, addr=0xc0002680, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1502), 0x0488 w00[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4388, sid00:w04, part=1, addr=0xc0000760, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1503), 
+Bypassed here
+  mf: uid=  4377, sid10:w07, part=0, addr=0xc0002400, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1503), 
+Bypassed here
+  mf: uid=  4207, sid11:w03, part=5, addr=0xc0001de0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1503), 
+Bypassed here
+  mf: uid=  4494, sid12:w03, part=2, addr=0xc0002cc0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1503), 
+Bypassed here
+  mf: uid=  4663, sid00:w11, part=4, addr=0xc0002e40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1504), 
+Bypassed here
+  mf: uid=  4378, sid10:w07, part=0, addr=0xc0002420, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1504), 
+Bypassed here
+  mf: uid=  4230, sid11:w02, part=5, addr=0xc0001d00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1504), 
+Bypassed here
+  mf: uid=  4425, sid12:w03, part=3, addr=0xc0002d60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1504), 0x04c0 w03[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x4c0 (mmul.1.sm_30.ptx:232) ld.global.u32 %r109, [%rd9];
+Bypassed here
+  mf: uid=  4664, sid00:w11, part=4, addr=0xc0002e60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1505), 
+Bypassed here
+  mf: uid=  4392, sid11:w07, part=0, addr=0xc0002480, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1505), 
+Bypassed here
+  mf: uid=  4504, sid12:w04, part=5, addr=0xc0002f20, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1505), 
+Bypassed here
+  mf: uid=  4528, sid13:w03, part=3, addr=0xc0002d80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1505), 
+Bypassed here
+  mf: uid=  4231, sid11:w02, part=5, addr=0xc0001d20, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1506), 
+Bypassed here
+  mf: uid=  4403, sid12:w02, part=1, addr=0xc0002be0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1506), 0x04c0 w02[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x4c0 (mmul.1.sm_30.ptx:232) ld.global.u32 %r109, [%rd9];
+Bypassed here
+  mf: uid=  4529, sid13:w03, part=3, addr=0xc0002da0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1506), 
+Bypassed here
+  mf: uid=  4393, sid11:w07, part=0, addr=0xc00024a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1507), 
+Bypassed here
+  mf: uid=  4100, sid12:w00, part=2, addr=0xc0002640, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1507), 
+Bypassed here
+  mf: uid=  4530, sid13:w03, part=3, addr=0xc0002dc0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1507), 
+Bypassed here
+  mf: uid=  4394, sid11:w07, part=0, addr=0xc00024c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1508), 
+Bypassed here
+  mf: uid=  4495, sid12:w03, part=2, addr=0xc0002ce0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1508), 
+Bypassed here
+  mf: uid=  4531, sid13:w03, part=3, addr=0xc0002de0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1508), 
+Bypassed here
+  mf: uid=  4499, sid00:w05, part=2, addr=0xc0000880, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1509), 
+Bypassed here
+  mf: uid=  4395, sid11:w07, part=0, addr=0xc00024e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1509), 
+Bypassed here
+  mf: uid=  4433, sid12:w01, part=5, addr=0xc0002980, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1509), 
+Bypassed here
+  mf: uid=  4537, sid13:w03, part=3, addr=0xc0002d00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1509), 
+Bypassed here
+  mf: uid=  4500, sid00:w05, part=2, addr=0xc00008a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1510), 
+Bypassed here
+  mf: uid=  4400, sid11:w07, part=0, addr=0xc0002400, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1510), 
+Bypassed here
+  mf: uid=  4505, sid12:w04, part=5, addr=0xc0002f40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1510), 
+Bypassed here
+  mf: uid=  4538, sid13:w03, part=3, addr=0xc0002d20, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1510), 
+Bypassed here
+  mf: uid=  4501, sid00:w05, part=2, addr=0xc00008c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1511), 
+Bypassed here
+  mf: uid=  4401, sid11:w07, part=0, addr=0xc0002420, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1511), 
+Bypassed here
+  mf: uid=  4460, sid12:w02, part=1, addr=0xc0002b00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1511), 
+Bypassed here
+  mf: uid=  4498, sid14:w03, part=3, addr=0xc0002de0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1511), 0x04c0 w03[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x4c0 (mmul.1.sm_30.ptx:232) ld.global.u32 %r109, [%rd9];
+Bypassed here
+  mf: uid=  4502, sid00:w05, part=2, addr=0xc00008e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1512), 
+Bypassed here
+  mf: uid=  4101, sid12:w00, part=2, addr=0xc0002660, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1512), 
+Bypassed here
+  mf: uid=  4587, sid14:w03, part=3, addr=0xc0002d00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1512), 
+Bypassed here
+  mf: uid=  4429, sid00:w05, part=2, addr=0xc0000800, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1513), 0x0488 w05[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4126, sid11:w01, part=2, addr=0xc0001a80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1513), 
+Bypassed here
+  mf: uid=  4434, sid12:w01, part=5, addr=0xc00029a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1513), 
+Bypassed here
+  mf: uid=  4588, sid14:w03, part=3, addr=0xc0002d20, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1513), 
+Bypassed here
+  mf: uid=  4127, sid11:w01, part=2, addr=0xc0001aa0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1514), 
+Bypassed here
+  mf: uid=  4506, sid12:w04, part=5, addr=0xc0002f60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1514), 
+Bypassed here
+  mf: uid=  4535, sid14:w02, part=2, addr=0xc0002c80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1514), 
+Bypassed here
+  mf: uid=  4539, sid00:w07, part=5, addr=0xc0000b80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1515), 
+Bypassed here
+  mf: uid=  4128, sid11:w01, part=2, addr=0xc0001ac0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1515), 
+Bypassed here
+  mf: uid=  4518, sid12:w05, part=0, addr=0xc0003080, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1515), 
+Bypassed here
+  mf: uid=  4589, sid14:w03, part=3, addr=0xc0002d40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1515), 
+Bypassed here
+  mf: uid=  4540, sid00:w07, part=5, addr=0xc0000ba0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1516), 
+Bypassed here
+  mf: uid=  4129, sid11:w01, part=2, addr=0xc0001ae0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1516), 
+Bypassed here
+  mf: uid=  4461, sid12:w02, part=1, addr=0xc0002b20, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1516), 
+Bypassed here
+  mf: uid=  4536, sid14:w02, part=2, addr=0xc0002ca0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1516), 
+Bypassed here
+  mf: uid=  4541, sid00:w07, part=5, addr=0xc0000bc0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1517), 
+Bypassed here
+  mf: uid=  4435, sid12:w01, part=5, addr=0xc00029c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1517), 
+Bypassed here
+  mf: uid=  4011, sid13:w00, part=2, addr=0xc0002680, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1517), 0x0488 w00[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4590, sid14:w03, part=3, addr=0xc0002d60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1517), 
+Bypassed here
+  mf: uid=  4666, sid00:w11, part=3, addr=0xc0002d80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1518), 
+Bypassed here
+  mf: uid=  4519, sid12:w05, part=0, addr=0xc00030a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1518), 
+Bypassed here
+  mf: uid=  4471, sid13:w03, part=2, addr=0xc0002ce0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1518), 0x04c0 w03[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x4c0 (mmul.1.sm_30.ptx:232) ld.global.u32 %r109, [%rd9];
+Bypassed here
+  mf: uid=  4542, sid00:w07, part=5, addr=0xc0000be0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1519), 
+Bypassed here
+  mf: uid=  4462, sid12:w02, part=1, addr=0xc0002b40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1519), 
+Bypassed here
+  mf: uid=  4167, sid13:w00, part=2, addr=0xc0002640, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1519), 
+Bypassed here
+  mf: uid=  4472, sid14:w02, part=2, addr=0xc0002c60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1519), 0x04c0 w02[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x4c0 (mmul.1.sm_30.ptx:232) ld.global.u32 %r109, [%rd9];
+Bypassed here
+  mf: uid=  4624, sid00:w10, part=2, addr=0xc0002c80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1520), 
+Bypassed here
+  mf: uid=  4436, sid12:w01, part=5, addr=0xc00029e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1520), 
+Bypassed here
+  mf: uid=  4168, sid13:w00, part=2, addr=0xc0002660, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1520), 
+Bypassed here
+  mf: uid=  4667, sid00:w11, part=3, addr=0xc0002da0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1521), 
+Bypassed here
+  mf: uid=  4546, sid12:w05, part=5, addr=0xc0002fc0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1521), 
+Bypassed here
+  mf: uid=  4094, sid14:w00, part=2, addr=0xc0002680, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1521), 0x0488 w00[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4444, sid00:w03, part=5, addr=0xc0000580, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1522), 
+Bypassed here
+  mf: uid=  4520, sid12:w05, part=0, addr=0xc00030c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1522), 
+Bypassed here
+  mf: uid=  4240, sid14:w00, part=2, addr=0xc0002640, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1522), 
+Bypassed here
+  mf: uid=  4625, sid00:w10, part=2, addr=0xc0002ca0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1523), 
+Bypassed here
+  mf: uid=  4463, sid12:w02, part=1, addr=0xc0002b60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1523), 
+Bypassed here
+  mf: uid=  4241, sid14:w00, part=2, addr=0xc0002660, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1523), 
+Bypassed here
+  mf: uid=  4655, sid00:w11, part=3, addr=0xc0002d60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1524), 0x04c0 w11[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x4c0 (mmul.1.sm_30.ptx:232) ld.global.u32 %r109, [%rd9];
+Bypassed here
+  mf: uid=  4547, sid12:w05, part=5, addr=0xc0002fe0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1524), 
+Bypassed here
+  mf: uid=  4431, sid13:w02, part=1, addr=0xc0002b80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1524), 0x04c0 w02[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x4c0 (mmul.1.sm_30.ptx:232) ld.global.u32 %r109, [%rd9];
+Bypassed here
+  mf: uid=  4445, sid00:w03, part=5, addr=0xc00005a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1525), 
+Bypassed here
+  mf: uid=  4521, sid12:w05, part=0, addr=0xc00030e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1525), 
+Bypassed here
+  mf: uid=  4478, sid13:w04, part=5, addr=0xc0002f80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1525), 0x04c0 w04[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x4c0 (mmul.1.sm_30.ptx:232) ld.global.u32 %r109, [%rd9];
+Bypassed here
+  mf: uid=  4432, sid14:w01, part=1, addr=0xc0002b00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1525), 0x04c0 w01[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x4c0 (mmul.1.sm_30.ptx:232) ld.global.u32 %r109, [%rd9];
+Bypassed here
+  mf: uid=  4564, sid00:w07, part=5, addr=0xc0000b00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1526), 
+Bypassed here
+  mf: uid=  4470, sid12:w05, part=0, addr=0xc0003000, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1526), 0x04c0 w05[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x4c0 (mmul.1.sm_30.ptx:232) ld.global.u32 %r109, [%rd9];
+Bypassed here
+  mf: uid=  4440, sid13:w02, part=1, addr=0xc0002b60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1526), 0x04c0 w02[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x4c0 (mmul.1.sm_30.ptx:232) ld.global.u32 %r109, [%rd9];
+Bypassed here
+  mf: uid=  4526, sid00:w05, part=1, addr=0xc00007c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1527), 
+Bypassed here
+  mf: uid=  4600, sid13:w05, part=0, addr=0xc00030c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1527), 
+Bypassed here
+  mf: uid=  4335, sid00:w01, part=2, addr=0xc0000280, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1528), 0x0488 w01[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4601, sid13:w05, part=0, addr=0xc00030e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1528), 
+Bypassed here
+  mf: uid=  4626, sid00:w10, part=2, addr=0xc0002cc0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1529), 
+Bypassed here
+  mf: uid=  4609, sid13:w05, part=0, addr=0xc0003000, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1529), 
+Bypassed here
+  mf: uid=  4389, sid00:w03, part=5, addr=0xc0000560, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1530), 0x0488 w03[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4610, sid13:w05, part=0, addr=0xc0003020, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1530), 
+Bypassed here
+  mf: uid=  4565, sid00:w07, part=5, addr=0xc0000b20, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1531), 
+Bypassed here
+  mf: uid=  4475, sid13:w01, part=5, addr=0xc00029c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1531), 
+Bypassed here
+  mf: uid=  4527, sid00:w05, part=1, addr=0xc00007e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1532), 
+Bypassed here
+  mf: uid=  4572, sid13:w04, part=5, addr=0xc0002f40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1532), 
+Bypassed here
+  mf: uid=  4405, sid00:w01, part=2, addr=0xc0000240, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1533), 
+Bypassed here
+  mf: uid=  4611, sid13:w05, part=0, addr=0xc0003040, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1533), 
+Bypassed here
+  mf: uid=  4560, sid14:w02, part=1, addr=0xc0002b80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1533), 
+Bypassed here
+  mf: uid=  4627, sid00:w10, part=2, addr=0xc0002ce0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1534), 
+Bypassed here
+  mf: uid=  4476, sid13:w01, part=5, addr=0xc00029e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1534), 
+Bypassed here
+  mf: uid=  4561, sid14:w02, part=1, addr=0xc0002ba0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1534), 
+Bypassed here
+  mf: uid=  4406, sid00:w01, part=2, addr=0xc0000260, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1535), 
+Bypassed here
+  mf: uid=  4573, sid13:w04, part=5, addr=0xc0002f60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1535), 
+Bypassed here
+  mf: uid=  4562, sid14:w02, part=1, addr=0xc0002bc0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1535), 
+Bypassed here
+  mf: uid=  4581, sid00:w10, part=2, addr=0xc0002c00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1536), 0x04c0 w10[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x4c0 (mmul.1.sm_30.ptx:232) ld.global.u32 %r109, [%rd9];
+Bypassed here
+  mf: uid=  4612, sid13:w05, part=0, addr=0xc0003060, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1536), 
+Bypassed here
+  mf: uid=  4595, sid14:w04, part=5, addr=0xc0002f80, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1536), 
+Bypassed here
+  mf: uid=  4402, sid00:w08, part=2, addr=0xc0002680, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1537), 0x0488 w08[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x488 (mmul.1.sm_30.ptx:222) ld.global.u32 %r108, [%rd6];
+Bypassed here
+  mf: uid=  4551, sid14:w05, part=0, addr=0xc0003080, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1537), 0x04c0 w05[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x4c0 (mmul.1.sm_30.ptx:232) ld.global.u32 %r109, [%rd9];
+Bypassed here
+  mf: uid=  4480, sid00:w08, part=2, addr=0xc0002640, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1538), 
+Bypassed here
+  mf: uid=  4563, sid14:w02, part=1, addr=0xc0002be0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1538), 
+Bypassed here
+  mf: uid=  4602, sid00:w09, part=1, addr=0xc0002b00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1539), 
+Bypassed here
+  mf: uid=  4596, sid14:w04, part=5, addr=0xc0002fa0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1539), 
+Bypassed here
+  mf: uid=  4481, sid00:w08, part=2, addr=0xc0002660, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1540), 
+Bypassed here
+  mf: uid=  4622, sid14:w05, part=0, addr=0xc0003040, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1540), 
+Bypassed here
+  mf: uid=  4603, sid00:w09, part=1, addr=0xc0002b20, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1541), 
+Bypassed here
+  mf: uid=  4552, sid12:w06, part=2, addr=0xc0003200, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1541), 
+Bypassed here
+  mf: uid=  4597, sid14:w04, part=5, addr=0xc0002fc0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1541), 
+Bypassed here
+  mf: uid=  4604, sid00:w09, part=1, addr=0xc0002b40, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1542), 
+Bypassed here
+  mf: uid=  4553, sid12:w06, part=2, addr=0xc0003220, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1542), 
+Bypassed here
+  mf: uid=  4623, sid14:w05, part=0, addr=0xc0003060, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1542), 
+Bypassed here
+  mf: uid=  4650, sid00:w12, part=0, addr=0xc0003000, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1543), 0x04c0 w12[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x4c0 (mmul.1.sm_30.ptx:232) ld.global.u32 %r109, [%rd9];
+Bypassed here
+  mf: uid=  4554, sid12:w06, part=2, addr=0xc0003240, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1543), 
+Bypassed here
+  mf: uid=  4598, sid14:w04, part=5, addr=0xc0002fe0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1543), 
+Bypassed here
+  mf: uid=  4605, sid00:w09, part=1, addr=0xc0002b60, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1544), 
+Bypassed here
+  mf: uid=  4555, sid12:w06, part=2, addr=0xc0003260, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1544), 
+Bypassed here
+  mf: uid=  4656, sid00:w12, part=5, addr=0xc0002fc0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1545), 
+Bypassed here
+  mf: uid=  4543, sid12:w07, part=2, addr=0xc00032e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1545), 0x04c0 w07[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x4c0 (mmul.1.sm_30.ptx:232) ld.global.u32 %r109, [%rd9];
+Bypassed here
+  mf: uid=  4677, sid00:w13, part=0, addr=0xc0003080, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1546), 
+Bypassed here
+  mf: uid=  4619, sid13:w06, part=2, addr=0xc0003280, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1546), 
+Bypassed here
+  mf: uid=  4593, sid00:w10, part=1, addr=0xc0002be0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1547), 0x04c0 w10[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x4c0 (mmul.1.sm_30.ptx:232) ld.global.u32 %r109, [%rd9];
+Bypassed here
+  mf: uid=  4620, sid13:w06, part=2, addr=0xc00032a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1547), 
+Bypassed here
+  mf: uid=  4657, sid00:w12, part=5, addr=0xc0002fe0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1548), 
+Bypassed here
+  mf: uid=  4550, sid13:w06, part=2, addr=0xc0003260, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1548), 0x04c0 w06[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x4c0 (mmul.1.sm_30.ptx:232) ld.global.u32 %r109, [%rd9];
+Bypassed here
+  mf: uid=  4678, sid00:w13, part=0, addr=0xc00030a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1549), 
+Bypassed here
+  mf: uid=  4632, sid14:w06, part=2, addr=0xc0003280, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1549), 
+Bypassed here
+  mf: uid=  4658, sid00:w12, part=5, addr=0xc0002f00, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1550), 
+Bypassed here
+  mf: uid=  4633, sid14:w06, part=2, addr=0xc00032a0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1550), 
+Bypassed here
+  mf: uid=  4679, sid00:w13, part=0, addr=0xc00030c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1551), 
+Bypassed here
+  mf: uid=  4634, sid14:w06, part=2, addr=0xc00032c0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1551), 
+Bypassed here
+  mf: uid=  4659, sid00:w12, part=5, addr=0xc0002f20, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1552), 
+Bypassed here
+  mf: uid=  4635, sid14:w06, part=2, addr=0xc00032e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1552), 
+Bypassed here
+  mf: uid=  4680, sid00:w13, part=0, addr=0xc00030e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1553), 
+Bypassed here
+  mf: uid=  4576, sid14:w06, part=2, addr=0xc0003200, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1553), 0x04c0 w06[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x4c0 (mmul.1.sm_30.ptx:232) ld.global.u32 %r109, [%rd9];
+Bypassed here
+  mf: uid=  4673, sid00:w14, part=2, addr=0xc00032e0, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1554), 0x04c0 w14[11111111111111111111111111111111]: gpu_square_matrix_mult PC=0x4c0 (mmul.1.sm_30.ptx:232) ld.global.u32 %r109, [%rd9];
+Bypassed here
+  mf: uid=  4689, sid00:w14, part=2, addr=0xc0003200, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1555), 
+Bypassed here
+  mf: uid=  4690, sid00:w14, part=2, addr=0xc0003220, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1556), 
+Bypassed here
+  mf: uid=  4691, sid00:w14, part=2, addr=0xc0003240, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1557), 
+Bypassed here
+  mf: uid=  4692, sid00:w14, part=2, addr=0xc0003260, load , size=32, GLOBAL_R status = IN_SHADER_LDST_RESPONSE_FIFO (1558), 
+
+
+GPGPU-Sim uArch: ERROR ** deadlock detected: last writeback core 0 @ gpu_sim_cycle 1326 (+ gpu_tot_sim_cycle 4294867296) (98674 cycles ago)
+GPGPU-Sim uArch: DEADLOCK  shader cores no longer committing instructions [core(# threads)]:
+GPGPU-Sim uArch: DEADLOCK  0(512) 1(256) 2(256) 3(256) 4(256) 5(256) 6(256) 7(256)  + others ...  + others ...  + others ...  + others ...  + others ...  + others ...  + others ... 
+
+Re-run the simulator in gdb and use debug routines in .gdbinit to debug this
