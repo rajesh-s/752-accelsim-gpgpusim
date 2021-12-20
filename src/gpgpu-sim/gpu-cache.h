@@ -1560,6 +1560,7 @@ class data_cache : public baseline_cache {
   virtual enum cache_request_status access(new_addr_type addr, mem_fetch *mf,
                                            unsigned time,
                                            std::list<cache_event> &events, uint8_t *l1d_prediction_table);
+ 
 
   virtual enum cache_request_status access(new_addr_type addr, mem_fetch *mf,
                                            unsigned time,
@@ -1720,7 +1721,7 @@ enum cache_request_status process_tag_probe(bool wr,
       std::list<cache_event> &events, enum cache_request_status status);
   enum cache_request_status (data_cache::*m_rd_miss_l1d)(
       new_addr_type addr, unsigned cache_index, mem_fetch *mf, unsigned time,
-      std::list<cache_event> &events, enum cache_request_status status, uint8_t *l1d_prediction_table, bool &victim_valid);
+      std::list<cache_event> &events, enum cache_request_status status, uint8_t *l1d_prediction_table, bool& victim_valid);
       
   enum cache_request_status rd_miss_base(new_addr_type addr,
                                          unsigned cache_index, mem_fetch *mf,

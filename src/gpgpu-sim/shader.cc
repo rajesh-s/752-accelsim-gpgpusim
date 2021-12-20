@@ -1926,18 +1926,18 @@ void ldst_unit::L1_latency_queue_cycle() {
     if ((l1_latency_queue[j][0]) != NULL) {
       mem_fetch *mf_next = l1_latency_queue[j][0];
       std::list<cache_event> events;
-      // fprintf(stdout,"Normal PC:%d\n",mf_next->get_pc()); Verified
+      bool victim_valid;
+       //fprintf(stdout,"Normal PC:%d\n",mf_next->get_pc()); Verified
       enum cache_request_status status =
           m_L1D->access(mf_next->get_addr(), mf_next,
                         m_core->get_gpu()->gpu_sim_cycle +
                             m_core->get_gpu()->gpu_tot_sim_cycle,
                         events, m_L1D->l1d_prediction_table);
-
       bool write_sent = was_write_sent(events);
       bool read_sent = was_read_sent(events);
 
       if (status == HIT) {
-
+//fprintf(stdout,"STATUS=HIT LINE %d\n",__LINE__);
         assert(!read_sent);
         l1_latency_queue[j][0] = NULL;
         if (mf_next->get_inst().is_load()) {
@@ -1973,10 +1973,12 @@ void ldst_unit::L1_latency_queue_cycle() {
         if (!write_sent) delete mf_next;
 
       } else if (status == RESERVATION_FAIL) {
+        //fprintf(stdout,"STATUS=RES_FAIL LINE %d\n",__LINE__);
         assert(!read_sent);
         assert(!write_sent);
       } else {
         assert(status == MISS || status == HIT_RESERVED);
+        //fprintf(stdout,"STATUS=MISS,HIT_RESERVED LINE %d\n",__LINE__);
         l1_latency_queue[j][0] = NULL;
       }
     }
@@ -2380,9 +2382,9 @@ ldst_unit::ldst_unit(mem_fetch_interface *icnt,
     m_L1D = new l1_cache(L1D_name, m_config->m_L1D_config, m_sid,
                          get_shader_normal_cache_id(), m_icnt, m_mf_allocator,
                          IN_L1D_MISS_QUEUE, core->get_gpu());
-    fprintf(stdout, "Initialize L1D\n");
+    //fprintf(stdout, "Initialize L1D\n");
     for (int i=0; i<256; i++){ // Initialize prediction table
-      m_L1D->l1d_prediction_table[i] = 4;
+      m_L1D->l1d_prediction_table[i] = 0;
     }
 
     l1_latency_queue.resize(m_config->m_L1D_config.l1_banks);
@@ -2605,14 +2607,19 @@ void ldst_unit::cycle() { // Rajesh CS752 Assume it happens every cycle
           if (mf->get_access_type() == GLOBAL_ACC_R){ // This happens only on MISS since we are fetching a line from lower memory )
             // This comparison will come from L2
             bool L1bypassbit = false; bool L2bypassbit = false;
-            if (m_L1D->l1d_prediction_table[(uint8_t) mf->get_original_mf()->get_pc()] >= 8) L1bypassbit = true; // Rajesh CS752  threshold computation
-              L2bypassbit = mf->get_original_mf()->get_isBypassed();
-            if(L1bypassbit && !L2bypassbit) bypassL1D = true;
-            //fprintf(stdout,"PC:%d L2bypassbit:%d L1bypassbit:%d\n",mf->get_original_mf()->get_pc(),L2bypassbit,L1bypassbit);  // Rajesh CS752 verification using L2 value before bypass
+            if (m_L1D->l1d_prediction_table[(uint8_t) mf->get_original_mf()->get_pc()] >= 8) {
+            //fprintf(stdout,"Threshold check!\n");  // Rajesh CS752 verification using L2 value before bypass
+                bypassL1D = true; // Rajesh CS752  threshold computation
+            }
+//Commenting out Verif 
+            //            L2bypassbit = mf->get_original_mf()->get_isBypassed();
+//            if(L1bypassbit && !L2bypassbit) bypassL1D = true;
+//            fprintf(stdout,"PC:%d L1bypassbit:%d\n",mf->get_original_mf()->get_pc(),L2bypassbit,L1bypassbit);  // Rajesh CS752 verification using L2 value before bypass
           }
         }
 
         if (bypassL1D) {
+            //fprintf(stdout,"AISH Bypassed!\n");  // Rajesh CS752 verification using L2 value before bypass
           if (m_next_global == NULL) {
             mf->set_status(IN_SHADER_FETCHED,
                            m_core->get_gpu()->gpu_sim_cycle +
