@@ -2608,9 +2608,8 @@ void ldst_unit::cycle() { // Rajesh CS752 Assume it happens every cycle
                    mf->get_access_type() ==
                        GLOBAL_ACC_W) {  // global memory access
           if (m_core->get_config()->gmem_skip_L1D) bypassL1D = true;
-          //if (m_L1D->l1d_prediction_table[temp_pc] >= 8 && mf->get_access_type() == GLOBAL_ACC_R) bypassL1D = true; // Rajesh CS752  threshold computation
-          //  fprintf(stdout,"Bypassed here\n"); mf->print(stdout);
-
+          if (m_L1D->l1d_prediction_table[temp_pc] >= 8 && mf->get_access_type() == GLOBAL_ACC_R) bypassL1D = true; // Rajesh CS752  threshold computation
+             fprintf(stdout,"Bypassed here\n"); mf->print(stdout);
           bool get_byp = (mf->get_pc() == -1) ? mf->get_original_mf()->get_bypass_in_shader() : mf->get_bypass_in_shader();
           if(get_byp && mf->get_bypass_in_shader()==true) {bypassL1D = true;fprintf(stdout,"Received new packet that was bypassed %d\n", mf->get_addr());}
         }
