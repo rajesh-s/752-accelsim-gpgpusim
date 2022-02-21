@@ -1,6 +1,7 @@
 Details of project as a part of CS752:Advanced Computer Architecutre with Prof. Matthew Sinclair on Adaptive GPU cache bypassing in Nvidia GPUs documented [here](https://github.com/rajesh-s/cs752-adaptive-gpu-cache-bypassing/blob/release-accelwattch-752-csl/FinalReportCS752.pdf)
 
--------- Original repository README -------
+-------- **Original repository README** -------
+
 Welcome to GPGPU-Sim, a cycle-level simulator modeling contemporary graphics
 processing units (GPUs) running GPU computing workloads written in CUDA or
 OpenCL. Also included in GPGPU-Sim is a performance visualization tool called
